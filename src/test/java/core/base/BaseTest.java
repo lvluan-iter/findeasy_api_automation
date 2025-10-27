@@ -2,8 +2,7 @@ package core.base;
 
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.reporter.ExtentSparkReporter;
-import core.constants.FrameworkConstants;
+import core.report.ExtentReportManager;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
@@ -18,9 +17,7 @@ public class BaseTest {
 
     @BeforeSuite
     public void setupReport() {
-        ExtentSparkReporter reporter = new ExtentSparkReporter(FrameworkConstants.REPORT);
-        extent = new ExtentReports();
-        extent.attachReporter(reporter);
+        extent = ExtentReportManager.getInstance();
     }
 
     @BeforeMethod
@@ -30,8 +27,13 @@ public class BaseTest {
 
     @AfterMethod
     public void end(ITestResult result) {
-        if (result.getStatus() == ITestResult.FAILURE) test.fail(result.getThrowable());
-        else if (result.getStatus() == ITestResult.SUCCESS) test.pass("PASSED");
+        if (result.getStatus() == ITestResult.FAILURE) {
+            test.fail(result.getThrowable());
+        } else if (result.getStatus() == ITestResult.SUCCESS) {
+            test.pass("PASSED");
+        } else if (result.getStatus() == ITestResult.SKIP) {
+            test.skip("SKIPPED");
+        }
     }
 
     @AfterSuite

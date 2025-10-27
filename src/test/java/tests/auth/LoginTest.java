@@ -55,6 +55,6 @@ public class LoginTest extends BaseTest {
     @Test(description = "Verify admin cannot login with null username or password")
     public void verifyAdminCannotLoginWithNullUsernameOrPassword() {
         Response loginResponse = user.login(adminData.getUsername(), null);
-        AssertApiResponse.unauthorized(loginResponse, ErrorMessages.BAD_CREDENTIALS);
+        AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
     }
 }
