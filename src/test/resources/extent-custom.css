@@ -1,0 +1,125 @@
+body {
+    background-color: #1e1e2f !important;
+    color: #e0e0e0 !important;
+    font-family: 'Inter', 'Roboto', sans-serif !important;
+    margin: 0;
+    padding: 0;
+}
+
+#report-header {
+    background-color: #2a2a3d !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #444;
+    font-size: 1.2rem;
+    padding: 15px 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.test-container, .category {
+    background-color: #2a2a3d !important;
+    border-radius: 8px;
+    margin: 15px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    border: 1px solid #444;
+}
+
+.test-name {
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.status-pass {
+    background-color: #39ff14 !important;
+    color: #000 !important;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.status-fail {
+    background-color: #ff073a !important;
+    color: #fff !important;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.status-warning {
+    background-color: #ffd700 !important;
+    color: #000 !important;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+table {
+    background-color: #2a2a3d !important;
+    color: #e0e0e0 !important;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table th, table td {
+    border: 1px solid #444;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+table th {
+    background-color: #3a3a50 !important;
+    color: #fff !important;
+}
+
+.ct-chart-line, .ct-chart-bar {
+    background-color: #1e1e2f !important;
+}
+
+.ct-series-a .ct-line, .ct-series-a .ct-bar {
+    stroke: #39ff14 !important;
+}
+
+.ct-series-b .ct-line, .ct-series-b .ct-bar {
+    stroke: #ff073a !important;
+}
+
+.ct-series-c .ct-line, .ct-series-c .ct-bar {
+    stroke: #ffd700 !important;
+}
+
+button, .btn {
+    background-color: #3a3a50 !important;
+    color: #ffffff !important;
+    border: 1px solid #444;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover, .btn:hover {
+    background-color: #50506a !important;
+    box-shadow: 0 0 10px #39ff14;
+}
+
+#report-footer {
+    background-color: #2a2a3d !important;
+    color: #bbb !important;
+    border-top: 1px solid #444;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e2f;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #39ff14;
+    border-radius: 4px;
+}
