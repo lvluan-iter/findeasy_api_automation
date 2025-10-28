@@ -9,8 +9,6 @@ import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 
-import java.lang.reflect.Method;
-
 public class BaseTest {
     protected ExtentReports extent;
     protected ExtentTest test;
@@ -21,8 +19,14 @@ public class BaseTest {
     }
 
     @BeforeMethod
-    public void start(Method method) {
-        test = extent.createTest(method.getName());
+    public void start(ITestResult result) {
+        String desc = result.getMethod().getDescription();
+
+        if (desc == null || desc.isEmpty()) {
+            desc = result.getMethod().getMethodName();
+        }
+
+        test = extent.createTest(desc);
     }
 
     @AfterMethod
