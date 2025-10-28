@@ -31,7 +31,7 @@ public class LoginTest extends BaseTest {
                 "user"
         );
 
-        user = new AuthService(UserRole.ANONYMOUS);
+        user = new AuthService(UserRole.anonymous);
     }
 
     @Test(description = "Verify admin can login successfully", groups = {"smoke"})
