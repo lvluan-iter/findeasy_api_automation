@@ -17,8 +17,8 @@ public class UserService {
         return user.get(String.format(UserEndpoints.GET_USER_BY_USERNAME, username), RequestMode.JSON_AUTH);
     }
 
-    public Response deleteUser(Long userId) {
-        return user.delete(String.format(UserEndpoints.DELETE_USER, userId), RequestMode.JSON_AUTH);
+    public void deleteUser(Long userId) {
+        user.delete(String.format(UserEndpoints.DELETE_USER, userId), RequestMode.JSON_AUTH);
     }
 
 }

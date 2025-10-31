@@ -1,6 +1,6 @@
 package core.api;
 
-import core.constants.FrameworkConstants;
+import core.constants.PathConstants;
 import core.utils.JsonUtils;
 import endpoints.AuthEndpoints;
 import enums.RequestMode;
@@ -42,6 +42,6 @@ public class TokenManager {
     }
 
     private static LoginRequest getLoginPayload(UserRole role) {
-        return JsonUtils.readJson(FrameworkConstants.ACCOUNT_JSON, LoginRequest.class, role.toString());
+        return JsonUtils.readJson(PathConstants.ACCOUNT_JSON, LoginRequest.class, role.toString());
     }
 }

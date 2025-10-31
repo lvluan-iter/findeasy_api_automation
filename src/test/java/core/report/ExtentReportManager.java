@@ -3,15 +3,16 @@ package core.report;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.aventstack.extentreports.reporter.configuration.Theme;
-import core.constants.FrameworkConstants;
+import core.constants.PathConstants;
 
 public class ExtentReportManager {
 
     private static ExtentReports extent;
+    private static final String reportFileName = "ExecutionReport_" + System.getProperty("current.date") + ".html";
 
     public static ExtentReports getInstance() {
         if (extent == null) {
-            createInstance(FrameworkConstants.REPORT);
+            createInstance(PathConstants.REPORT);
         }
         return extent;
     }
@@ -19,11 +20,11 @@ public class ExtentReportManager {
     public static ExtentReports createInstance(String fileName) {
         ExtentSparkReporter spark = new ExtentSparkReporter(fileName);
 
-        spark.config().setTheme(Theme.DARK);
-        spark.config().setDocumentTitle("API Automation Report");
-        spark.config().setReportName("API Test Report");
+        spark.config().setTheme(Theme.STANDARD);
+        spark.config().setDocumentTitle(reportFileName);
+        spark.config().setReportName(reportFileName);
         spark.config().setEncoding("UTF-8");
-        spark.config().setCss(FrameworkConstants.EXTENT_CSS_PATH);
+        spark.config().setCss(PathConstants.EXTENT_CSS_PATH);
         spark.config().setTimelineEnabled(true);
 
         extent = new ExtentReports();

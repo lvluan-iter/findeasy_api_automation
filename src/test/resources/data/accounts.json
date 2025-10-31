@@ -1,7 +1,12 @@
 {
   "admin": {
     "username": "luan123",
-    "password": "Luan@0907"
+    "email": "luanle.31211027594@st.ueh.edu.vn",
+    "password": "Luan@0907",
+    "fullname": "Lê Văn Luân",
+    "phoneNumber": "0392788740",
+    "gender": "MALE",
+    "birthdate": "2006-01-14"
   },
   "user": {
     "username": "luan0907",
