@@ -3,45 +3,51 @@ package core.base;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import core.report.ExtentReportManager;
-import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
+import org.testng.*;
 
-public class BaseTest {
-    protected ExtentReports extent;
-    protected ExtentTest test;
+public class TestListener implements ITestListener, ISuiteListener {
 
-    @BeforeSuite
-    public void setupReport() {
+    private static ExtentReports extent;
+    private static final ThreadLocal<ExtentTest> methodTest = new ThreadLocal<>();
+
+    @Override
+    public void onStart(ISuite suite) {
         extent = ExtentReportManager.getInstance();
     }
 
-    @BeforeMethod
-    public void start(ITestResult result) {
-        String desc = result.getMethod().getDescription();
-
-        if (desc == null || desc.isEmpty()) {
-            desc = result.getMethod().getMethodName();
-        }
-
-        test = extent.createTest(desc);
-    }
-
-    @AfterMethod
-    public void end(ITestResult result) {
-        if (result.getStatus() == ITestResult.FAILURE) {
-            test.fail(result.getThrowable());
-        } else if (result.getStatus() == ITestResult.SUCCESS) {
-            test.pass("PASSED");
-        } else if (result.getStatus() == ITestResult.SKIP) {
-            test.skip("SKIPPED");
+    @Override
+    public void onFinish(ISuite suite) {
+        if (extent != null) {
+            extent.flush();
         }
     }
 
-    @AfterSuite
-    public void flush() {
-        extent.flush();
+    @Override
+    public void onTestStart(ITestResult result) {
+        ExtentTest testNode = extent.createTest(result.getMethod().getMethodName());
+
+        testNode.assignCategory(result.getTestClass().getName());
+
+        methodTest.set(testNode);
+    }
+
+    @Override
+    public void onTestSuccess(ITestResult result) {
+        methodTest.get().pass("PASSED");
+    }
+
+    @Override
+    public void onTestFailure(ITestResult result) {
+        methodTest.get().fail(result.getThrowable());
+    }
+
+    @Override
+    public void onTestSkipped(ITestResult result) {
+        methodTest.get().skip("SKIPPED");
+    }
+
+    @Override
+    public void onStart(ITestContext context) {
+        methodTest.remove();
     }
 }

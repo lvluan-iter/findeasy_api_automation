@@ -71,4 +71,12 @@ public class AssertApiResponse {
     public static void notFound(Response response, String msg) {
         checkResponse(response, 404, false, msg);
     }
+
+    public static void conflict(Response response, String msg) {
+        checkResponse(response, 409, false, msg);
+    }
+
+    public static void unknown(Response response, String msg) {
+        checkResponse(response, 500, false, msg);
+    }
 }

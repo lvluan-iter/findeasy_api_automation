@@ -1,18 +1,21 @@
 package tests.auth;
 
 import core.api.AssertApiResponse;
-import core.base.BaseTest;
-import core.constants.FrameworkConstants;
+import core.base.TestListener;
+import core.constants.PathConstants;
+import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
 import enums.ErrorMessages;
 import enums.UserRole;
 import io.restassured.response.Response;
 import models.LoginRequest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.AuthService;
 
-public class LoginTest extends BaseTest {
+@Listeners(TestListener.class)
+public class LoginTest {
     private AuthService user;
     private LoginRequest adminData;
     private LoginRequest userData;
@@ -20,13 +23,13 @@ public class LoginTest extends BaseTest {
     @BeforeClass
     public void init() {
         adminData = JsonUtils.readJson(
-                FrameworkConstants.ACCOUNT_JSON,
+                PathConstants.ACCOUNT_JSON,
                 LoginRequest.class,
                 "admin"
         );
 
         userData = JsonUtils.readJson(
-                FrameworkConstants.ACCOUNT_JSON,
+                PathConstants.ACCOUNT_JSON,
                 LoginRequest.class,
                 "user"
         );
@@ -35,7 +38,7 @@ public class LoginTest extends BaseTest {
     }
 
     @Test(description = "Verify admin can login successfully", groups = {"smoke"})
-    public void verifyAdminCanLoginSuccessfully() {
+    public void verifyAdminCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = user.login(adminData.getUsername(), adminData.getPassword());
         AssertApiResponse.success(loginResponse);
     }
