@@ -6,7 +6,6 @@ import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
 import enums.ErrorMessages;
-import enums.UserRole;
 import io.restassured.response.Response;
 import models.LoginRequest;
 import org.testng.annotations.BeforeClass;
@@ -16,12 +15,13 @@ import services.AuthService;
 
 @Listeners(TestListener.class)
 public class LoginTest {
-    private AuthService user;
+
     private LoginRequest adminData;
     private LoginRequest userData;
+    private AuthService authService;
 
     @BeforeClass
-    public void init() {
+    public void setUp() {
         adminData = JsonUtils.readJson(
                 PathConstants.ACCOUNT_JSON,
                 LoginRequest.class,
@@ -34,30 +34,42 @@ public class LoginTest {
                 "user"
         );
 
-        user = new AuthService(UserRole.anonymous);
+        authService = AuthService.init();
     }
 
     @Test(description = "Verify admin can login successfully", groups = {"smoke"})
     public void verifyAdminCanLoginSuccessfully() throws AutomationException {
-        Response loginResponse = user.login(adminData.getUsername(), adminData.getPassword());
+        Response loginResponse = authService
+                .login(adminData.getUsername(), adminData.getPassword())
+                .getResponse();
+
         AssertApiResponse.success(loginResponse);
     }
 
     @Test(description = "Verify user can login successfully", groups = {"smoke"})
-    public void verifyUserCanLoginSuccessfully() {
-        Response loginResponse = user.login(userData.getUsername(), userData.getPassword());
+    public void verifyUserCanLoginSuccessfully() throws AutomationException {
+        Response loginResponse = authService
+                .login(userData.getUsername(), userData.getPassword())
+                .getResponse();
+
         AssertApiResponse.success(loginResponse);
     }
 
-    @Test(description = "Verify admin cannot login with invalid username or password")
-    public void verifyAdminCannotLoginWithInvalidUsernameOrPassword() {
-        Response loginResponse = user.login(adminData.getUsername(), adminData.getUsername());
+    @Test(description = "Verify admin cannot login with invalid username or password", groups = {"negative"})
+    public void verifyAdminCannotLoginWithInvalidUsernameOrPassword() throws AutomationException {
+        Response loginResponse = authService
+                .login(adminData.getUsername(), adminData.getUsername())
+                .getResponse();
+
         AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
     }
 
-    @Test(description = "Verify admin cannot login with null username or password")
-    public void verifyAdminCannotLoginWithNullUsernameOrPassword() {
-        Response loginResponse = user.login(adminData.getUsername(), null);
+    @Test(description = "Verify admin cannot login with null username or password", groups = {"negative"})
+    public void verifyAdminCannotLoginWithNullUsernameOrPassword() throws AutomationException {
+        Response loginResponse = authService
+                .login(adminData.getUsername(), null)
+                .getResponse();
+
         AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
     }
 }

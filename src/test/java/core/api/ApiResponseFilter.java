@@ -2,6 +2,7 @@ package core.api;
 
 import com.aventstack.extentreports.Status;
 import com.aventstack.extentreports.markuputils.MarkupHelper;
+import core.report.ExtentTestManager;
 import io.restassured.filter.Filter;
 import io.restassured.filter.FilterContext;
 import io.restassured.filter.log.LogDetail;
@@ -16,7 +17,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-public class APIResponseFilter implements Filter {
+public class ApiResponseFilter implements Filter {
 
     @Override
     public Response filter(FilterableRequestSpecification requestSpec,
@@ -25,35 +26,38 @@ public class APIResponseFilter implements Filter {
 
         Response response = ctx.next(requestSpec, responseSpec);
 
-        String requestStr = printRequest(requestSpec);
-        String responseStr = printResponse(response);
-
-        ExtentTestManager.getTest()
-                .log(Status.INFO, MarkupHelper.createCodeBlock(requestStr + "\n" + responseStr));
-
-        return response;
-    }
-
-    private String printRequest(FilterableRequestSpecification requestSpec) {
-        return RequestPrinter.print(
+        ByteArrayOutputStream requestStream = new ByteArrayOutputStream();
+        PrintStream requestPrintStream = new PrintStream(requestStream, true, StandardCharsets.UTF_8);
+        RequestPrinter.print(
                 requestSpec,
                 requestSpec.getMethod(),
                 requestSpec.getURI(),
                 LogDetail.ALL,
                 Collections.emptySet(),
-                new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8),
+                requestPrintStream,
                 true
         );
-    }
+        String requestStr = requestStream.toString(StandardCharsets.UTF_8);
 
-    private String printResponse(Response response) {
-        return ResponsePrinter.print(
+        ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
+        PrintStream responsePrintStream = new PrintStream(responseStream, true, StandardCharsets.UTF_8);
+        ResponsePrinter.print(
                 response,
                 response,
-                new PrintStream(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8),
+                responsePrintStream,
                 LogDetail.ALL,
                 true,
                 Collections.emptySet()
         );
+        String responseStr = responseStream.toString(StandardCharsets.UTF_8);
+
+        ExtentTestManager.getTest()
+                .log(Status.INFO,
+                        MarkupHelper.createCodeBlock(
+                                "📤 REQUEST:\n" + requestStr + "\n\n📥 RESPONSE:\n" + responseStr
+                        )
+                );
+
+        return response;
     }
 }
