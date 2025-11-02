@@ -4,7 +4,6 @@ import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Properties;
@@ -26,8 +25,6 @@ public final class ConfigReader {
             try {
                 FileInputStream inputStream = new FileInputStream(PathConstants.CONFIG_PROPERTIES_PATH);
                 properties.load(inputStream);
-            } catch (FileNotFoundException _) {
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -38,9 +35,12 @@ public final class ConfigReader {
 
         Object value = properties.get(propertyName);
         if (value != null) {
-            return properties.get(propertyName).toString();
+            return properties.get(propertyName)
+                    .toString();
         } else {
-            String errorLog = MessageFormat.format("Error occurred while getting {0} Property from config.properties. This could be due to no such property available in this file.", propertyName);
+            String errorLog = MessageFormat.format(
+                    "Error occurred while getting {0} Property from config.properties. This could be due to no such property available in this file.",
+                    propertyName);
             throw new AutomationException(errorLog);
         }
     }

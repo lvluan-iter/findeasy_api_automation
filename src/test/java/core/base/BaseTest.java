@@ -1,47 +1,51 @@
 package core.base;
 
-import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import core.report.ExtentReportManager;
+import core.report.ExtentTestManager;
+import org.testng.ITestContext;
 import org.testng.ITestResult;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.*;
+
+import java.lang.reflect.Method;
 
 public class BaseTest {
-    protected ExtentReports extent;
-    protected ExtentTest test;
 
-    @BeforeSuite
-    public void setupReport() {
-        extent = ExtentReportManager.getInstance();
+    @BeforeSuite(alwaysRun = true)
+    public void setupReport(ITestContext context) {
+        ExtentReportManager.getInstance();
+        ExtentTestManager.createSuite(context.getSuite().getName());
     }
 
-    @BeforeMethod
-    public void start(ITestResult result) {
-        String desc = result.getMethod().getDescription();
+    @BeforeClass(alwaysRun = true)
+    public void setupClass(ITestContext context) {
+        String className = this.getClass().getSimpleName();
+        ExtentTestManager.createClassNode(className);
+    }
 
-        if (desc == null || desc.isEmpty()) {
-            desc = result.getMethod().getMethodName();
+    @BeforeMethod(alwaysRun = true)
+    public void setupTest(Method method) {
+        String desc = "";
+        if (method.isAnnotationPresent(Test.class)) {
+            desc = method.getAnnotation(Test.class).description();
         }
-
-        test = extent.createTest(desc);
+        ExtentTestManager.createTestNode(method.getName(), desc);
     }
 
-    @AfterMethod
-    public void end(ITestResult result) {
+    @AfterMethod(alwaysRun = true)
+    public void recordResult(ITestResult result) {
+        ExtentTest test = ExtentTestManager.getTest();
         if (result.getStatus() == ITestResult.FAILURE) {
             test.fail(result.getThrowable());
         } else if (result.getStatus() == ITestResult.SUCCESS) {
-            test.pass("PASSED");
+            test.pass("✅ Test Passed");
         } else if (result.getStatus() == ITestResult.SKIP) {
-            test.skip("SKIPPED");
+            test.skip("⚠️ Test Skipped");
         }
     }
 
-    @AfterSuite
-    public void flush() {
-        extent.flush();
+    @AfterSuite(alwaysRun = true)
+    public void tearDown() {
+        ExtentReportManager.getInstance().flush();
     }
 }

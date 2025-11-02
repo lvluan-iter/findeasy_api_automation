@@ -1,9 +1,10 @@
 package services;
 
 import core.api.ApiClient;
+import core.constants.HttpStatus;
+import core.exceptions.AutomationException;
 import endpoints.AuthEndpoints;
-import enums.RequestMode;
-import enums.UserRole;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import models.LoginRequest;
 import models.RegisterRequest;
@@ -11,19 +12,32 @@ import models.RegisterRequest;
 import java.sql.Date;
 
 public class AuthService {
-    private final ApiClient user;
 
-    public AuthService(UserRole role) {
-        user = ApiClient.getInstance(role);
+    private Response apiResponse;
+
+    private AuthService() {
     }
 
+    public static AuthService init() {
+        return new AuthService();
+    }
 
-    public Response login(String username, String password) {
+    public AuthService login(String username, String password) throws AutomationException {
         LoginRequest loginRequest = new LoginRequest(username, password);
-        return user.post(AuthEndpoints.LOGIN, loginRequest, RequestMode.JSON_NO_AUTH);
+
+        apiResponse = ApiClient.init()
+                .path(AuthEndpoints.LOGIN)
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .post()
+                .expectedStatusCode(HttpStatus.OK)
+                .response();
+
+        return this;
     }
 
-    public Response register(String username, String email, String password, String fullname, String phoneNumber, String gender, Date birthdate) {
+    public AuthService register(String username, String email, String password, String fullname,
+                                String phoneNumber, String gender, Date birthdate) throws AutomationException {
         RegisterRequest request = RegisterRequest.builder()
                 .username(username)
                 .email(email)
@@ -33,6 +47,19 @@ public class AuthService {
                 .gender(gender)
                 .birthdate(birthdate)
                 .build();
-        return user.post(AuthEndpoints.REGISTER, request, RequestMode.JSON_NO_AUTH);
+
+        apiResponse = ApiClient.init()
+                .path(AuthEndpoints.REGISTER)
+                .contentType(ContentType.JSON)
+                .body(request)
+                .post()
+                .expectedStatusCode(HttpStatus.OK)
+                .response();
+
+        return this;
+    }
+
+    public Response getResponse() {
+        return apiResponse;
     }
 }

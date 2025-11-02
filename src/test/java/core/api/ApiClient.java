@@ -1,65 +1,212 @@
 package core.api;
 
-import enums.RequestMode;
-import enums.UserRole;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import core.constants.HttpStatus;
+import core.exceptions.AutomationException;
+import core.utils.ConfigReader;
+import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.EncoderConfig;
+import io.restassured.http.ContentType;
+import io.restassured.http.Cookie;
+import io.restassured.http.Cookies;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+
+import java.io.IOException;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 
 public class ApiClient {
-    private final String token;
 
-    public ApiClient(UserRole role) {
-        token = TokenManager.getToken(role);
+    private RequestSpecBuilder requestSpecBuilder;
+    private RequestSpecification requestSpecification;
+    private Response apiResponse;
+
+    private HttpStatus expectedStatusCode = HttpStatus.OK;
+    private String expectedResponseContentType = ContentType.JSON.toString();
+
+    public static ApiClient init() throws AutomationException {
+        return new ApiClient();
     }
 
-    public static ApiClient getInstance(UserRole role) {
-        return new ApiClient(role);
+    public ApiClient() throws AutomationException {
+        initializeRequestSpec();
     }
 
-    public Response get(String path, RequestMode mode) {
-        return given()
-                .spec(RequestBuilder.getRequestSpec(mode, token))
+    private void initializeRequestSpec() throws AutomationException {
+        EncoderConfig encoderConfig = new EncoderConfig();
+        requestSpecBuilder = new RequestSpecBuilder();
+        requestSpecBuilder.setBaseUri(ConfigReader.init()
+                .getProperty("baseUrl"));
+        requestSpecBuilder.setConfig(RestAssured.config()
+                .encoderConfig(encoderConfig.appendDefaultContentCharsetToContentTypeIfUndefined(false)));
+    }
+
+    public ApiClient path(String path) {
+        requestSpecBuilder.setBasePath(path);
+        return this;
+    }
+
+    public ApiClient pathParam(String key, String value) {
+        requestSpecBuilder.addPathParam(key, value);
+        return this;
+    }
+
+    public ApiClient queryParam(String key, String value) {
+        requestSpecBuilder.addQueryParam(key, value);
+        return this;
+    }
+
+    public ApiClient contentType(ContentType contentType) {
+        requestSpecBuilder.setContentType(contentType);
+        return this;
+    }
+
+    public ApiClient headers(Map<String, String> headers) {
+        requestSpecBuilder.addHeaders(headers);
+        return this;
+    }
+
+    public ApiClient cookies(Map<String, String> cookies) {
+        requestSpecBuilder.addCookies(cookies);
+        return this;
+    }
+
+    public ApiClient cookies(Cookies cookies) {
+        requestSpecBuilder.addCookies(cookies);
+        return this;
+    }
+
+    public ApiClient cookie(Cookie cookie) {
+        requestSpecBuilder.addCookie(cookie);
+        return this;
+    }
+
+    public ApiClient body(Object body) {
+        requestSpecBuilder.setBody(body);
+        return this;
+    }
+
+    public ApiClient expectedStatusCode(HttpStatus expectedStatusCode) {
+        this.expectedStatusCode = expectedStatusCode;
+        return this;
+    }
+
+    public ApiClient expectedResponseContentType(ContentType contentType) {
+        this.expectedResponseContentType = contentType.toString();
+        return this;
+    }
+
+    public ApiClient expectedResponseContentType(String contentType) {
+        this.expectedResponseContentType = contentType;
+        return this;
+    }
+
+    public ApiClient put() {
+        requestSpecification = requestSpecBuilder.build();
+        apiResponse = given()
+                .log()
+                .all()
+                .filter(new ApiResponseFilter())
+                .spec(requestSpecification)
                 .when()
-                .get(path);
+                .put()
+                .then()
+                .assertThat()
+                .statusCode(expectedStatusCode.getCode())
+                .contentType(expectedResponseContentType)
+                .and()
+                .extract()
+                .response();
+        return this;
     }
 
-    public Response post(String path, Object body, RequestMode mode) {
-        return given()
-                .spec(RequestBuilder.getRequestSpec(mode, token))
-                .body(body)
+    public ApiClient delete() {
+        requestSpecification = requestSpecBuilder.build();
+        apiResponse = given()
+                .log()
+                .all()
+                .filter(new ApiResponseFilter())
+                .spec(requestSpecification)
                 .when()
-                .post(path);
+                .delete()
+                .then()
+                .assertThat()
+                .statusCode(expectedStatusCode.getCode())
+                .contentType(expectedResponseContentType)
+                .and()
+                .extract()
+                .response();
+        return this;
     }
 
-    public Response put(String path, Object body, RequestMode mode) {
-        return given()
-                .spec(RequestBuilder.getRequestSpec(mode, token))
-                .body(body)
+    public ApiClient post() {
+        requestSpecification = requestSpecBuilder.build();
+        apiResponse = given()
+                .log()
+                .all()
+                .filter(new ApiResponseFilter())
+                .spec(requestSpecification)
                 .when()
-                .put(path);
+                .post()
+                .then()
+                .assertThat()
+                .statusCode(expectedStatusCode.getCode())
+                .contentType(expectedResponseContentType)
+                .and()
+                .extract()
+                .response();
+        return this;
     }
 
-    public Response patch(String path, Object body, RequestMode mode) {
-        return given()
-                .spec(RequestBuilder.getRequestSpec(mode, token))
-                .body(body)
+    public ApiClient get() {
+        requestSpecification = requestSpecBuilder.build();
+        apiResponse = given()
+                .log()
+                .all()
+                .filter(new ApiResponseFilter())
+                .spec(requestSpecification)
                 .when()
-                .patch(path);
+                .get()
+                .then()
+                .assertThat()
+                .statusCode(expectedStatusCode.getCode())
+                .contentType(expectedResponseContentType)
+                .and()
+                .extract()
+                .response();
+        return this;
     }
 
-    public Response delete(String path, RequestMode mode) {
-        return given()
-                .spec(RequestBuilder.getRequestSpec(mode, token))
-                .when()
-                .delete(path);
+    public Response response() {
+        return apiResponse;
     }
 
-    public Response upload(String path, String fileParamName, Object file, RequestMode mode) {
-        return given()
-                .spec(RequestBuilder.getRequestSpec(mode, token))
-                .multiPart(fileParamName, file)
-                .when()
-                .post(path);
+    public String getApiResponseAsString() {
+        return apiResponse.asString();
+    }
+
+    public <T> T responseToPojo(Class<T> type) throws AutomationException {
+        try {
+            return new ObjectMapper()
+                    .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                    .readValue(getApiResponseAsString(), type);
+        } catch (IOException e) {
+            throw new AutomationException("Response did not match expected POJO: " + type.getName() + e);
+        }
+    }
+
+    public <T> T responseToPojo(TypeReference<T> type) throws AutomationException {
+        try {
+            return new ObjectMapper()
+                    .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                    .readValue(getApiResponseAsString(), type);
+        } catch (IOException e) {
+            throw new AutomationException(e);
+        }
     }
 }
