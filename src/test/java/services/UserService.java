@@ -1,24 +1,44 @@
 package services;
 
 import core.api.ApiClient;
+import core.exceptions.AutomationException;
 import endpoints.UserEndpoints;
-import enums.RequestMode;
 import enums.UserRole;
 import io.restassured.response.Response;
 
 public class UserService {
-    private final ApiClient user;
+    private final UserRole role;
+    private Response apiResponse;
 
-    public UserService(UserRole role) {
-        user = ApiClient.getInstance(role);
+    private UserService(UserRole role) {
+        this.role = role;
     }
 
-    public Response getUserByUsername(String username) {
-        return user.get(String.format(UserEndpoints.GET_USER_BY_USERNAME, username), RequestMode.JSON_AUTH);
+    public static UserService init(UserRole role) {
+        return new UserService(role);
     }
 
-    public void deleteUser(Long userId) {
-        user.delete(String.format(UserEndpoints.DELETE_USER, userId), RequestMode.JSON_AUTH);
+    public UserService getUserByUsername(String username) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .auth(role)
+                .path(UserEndpoints.GET_USER_BY_USERNAME)
+                .pathParam("name", username)
+                .get()
+                .response();
+        return this;
     }
 
+    public UserService deleteUser(Long userId) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .auth(role)
+                .path(UserEndpoints.DELETE_USER)
+                .pathParam("id", userId.toString())
+                .delete()
+                .response();
+        return this;
+    }
+
+    public Response getResponse() {
+        return apiResponse;
+    }
 }

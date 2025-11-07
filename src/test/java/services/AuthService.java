@@ -1,10 +1,8 @@
 package services;
 
 import core.api.ApiClient;
-import core.constants.HttpStatus;
 import core.exceptions.AutomationException;
 import endpoints.AuthEndpoints;
-import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import models.LoginRequest;
 import models.RegisterRequest;
@@ -27,10 +25,8 @@ public class AuthService {
 
         apiResponse = ApiClient.init()
                 .path(AuthEndpoints.LOGIN)
-                .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .post()
-                .expectedStatusCode(HttpStatus.OK)
                 .response();
 
         return this;
@@ -50,10 +46,8 @@ public class AuthService {
 
         apiResponse = ApiClient.init()
                 .path(AuthEndpoints.REGISTER)
-                .contentType(ContentType.JSON)
                 .body(request)
                 .post()
-                .expectedStatusCode(HttpStatus.OK)
                 .response();
 
         return this;
