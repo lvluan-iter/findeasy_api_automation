@@ -3,12 +3,13 @@ package core.api;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.constants.HttpStatus;
 import core.exceptions.AutomationException;
 import core.utils.ConfigReader;
+import enums.UserRole;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
+import io.restassured.config.HttpClientConfig;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import io.restassured.http.Cookies;
@@ -25,25 +26,41 @@ public class ApiClient {
     private RequestSpecBuilder requestSpecBuilder;
     private RequestSpecification requestSpecification;
     private Response apiResponse;
-
-    private HttpStatus expectedStatusCode = HttpStatus.OK;
-    private String expectedResponseContentType = ContentType.JSON.toString();
+    private static final ObjectMapper mapper = new ObjectMapper()
+            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
     public static ApiClient init() throws AutomationException {
         return new ApiClient();
     }
 
-    public ApiClient() throws AutomationException {
-        initializeRequestSpec();
+    private ApiClient() throws AutomationException {
+        initSpec();
+        initTimeout();
     }
 
-    private void initializeRequestSpec() throws AutomationException {
+    private void initSpec() throws AutomationException {
         EncoderConfig encoderConfig = new EncoderConfig();
         requestSpecBuilder = new RequestSpecBuilder();
+
         requestSpecBuilder.setBaseUri(ConfigReader.init()
                 .getProperty("baseUrl"));
-        requestSpecBuilder.setConfig(RestAssured.config()
-                .encoderConfig(encoderConfig.appendDefaultContentCharsetToContentTypeIfUndefined(false)));
+        requestSpecBuilder.setContentType(ContentType.JSON);
+
+        requestSpecBuilder.setConfig(
+                RestAssured.config()
+                        .encoderConfig(
+                                encoderConfig.appendDefaultContentCharsetToContentTypeIfUndefined(false)
+                        )
+        );
+    }
+
+    private void initTimeout() {
+        RestAssured.config = RestAssured.config()
+                .httpClient(
+                        HttpClientConfig.httpClientConfig()
+                                .setParam("http.connection.timeout", 210000)
+                                .setParam("http.socket.timeout", 210000)
+                );
     }
 
     public ApiClient path(String path) {
@@ -61,8 +78,8 @@ public class ApiClient {
         return this;
     }
 
-    public ApiClient contentType(ContentType contentType) {
-        requestSpecBuilder.setContentType(contentType);
+    public ApiClient contentType(ContentType type) {
+        requestSpecBuilder.setContentType(type);
         return this;
     }
 
@@ -91,120 +108,66 @@ public class ApiClient {
         return this;
     }
 
-    public ApiClient expectedStatusCode(HttpStatus expectedStatusCode) {
-        this.expectedStatusCode = expectedStatusCode;
+    public ApiClient auth(UserRole role) throws AutomationException {
+        if (role != null) {
+            String token = TokenManager.getToken(role);
+            requestSpecBuilder.addHeader("Authorization", "Bearer " + token);
+        }
         return this;
     }
 
-    public ApiClient expectedResponseContentType(ContentType contentType) {
-        this.expectedResponseContentType = contentType.toString();
-        return this;
-    }
-
-    public ApiClient expectedResponseContentType(String contentType) {
-        this.expectedResponseContentType = contentType;
-        return this;
-    }
-
-    public ApiClient put() {
+    private ApiClient execute(String method) {
         requestSpecification = requestSpecBuilder.build();
+
         apiResponse = given()
                 .log()
                 .all()
                 .filter(new ApiResponseFilter())
                 .spec(requestSpecification)
                 .when()
-                .put()
+                .request(method)
                 .then()
-                .assertThat()
-                .statusCode(expectedStatusCode.getCode())
-                .contentType(expectedResponseContentType)
-                .and()
                 .extract()
                 .response();
-        return this;
-    }
 
-    public ApiClient delete() {
-        requestSpecification = requestSpecBuilder.build();
-        apiResponse = given()
-                .log()
-                .all()
-                .filter(new ApiResponseFilter())
-                .spec(requestSpecification)
-                .when()
-                .delete()
-                .then()
-                .assertThat()
-                .statusCode(expectedStatusCode.getCode())
-                .contentType(expectedResponseContentType)
-                .and()
-                .extract()
-                .response();
-        return this;
-    }
-
-    public ApiClient post() {
-        requestSpecification = requestSpecBuilder.build();
-        apiResponse = given()
-                .log()
-                .all()
-                .filter(new ApiResponseFilter())
-                .spec(requestSpecification)
-                .when()
-                .post()
-                .then()
-                .assertThat()
-                .statusCode(expectedStatusCode.getCode())
-                .contentType(expectedResponseContentType)
-                .and()
-                .extract()
-                .response();
         return this;
     }
 
     public ApiClient get() {
-        requestSpecification = requestSpecBuilder.build();
-        apiResponse = given()
-                .log()
-                .all()
-                .filter(new ApiResponseFilter())
-                .spec(requestSpecification)
-                .when()
-                .get()
-                .then()
-                .assertThat()
-                .statusCode(expectedStatusCode.getCode())
-                .contentType(expectedResponseContentType)
-                .and()
-                .extract()
-                .response();
-        return this;
+        return execute("GET");
+    }
+
+    public ApiClient post() {
+        return execute("POST");
+    }
+
+    public ApiClient put() {
+        return execute("PUT");
+    }
+
+    public ApiClient delete() {
+        return execute("DELETE");
     }
 
     public Response response() {
         return apiResponse;
     }
 
-    public String getApiResponseAsString() {
+    public String asString() {
         return apiResponse.asString();
     }
 
-    public <T> T responseToPojo(Class<T> type) throws AutomationException {
+    public <T> T toPojo(Class<T> type) throws AutomationException {
         try {
-            return new ObjectMapper()
-                    .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-                    .readValue(getApiResponseAsString(), type);
+            return mapper.readValue(asString(), type);
         } catch (IOException e) {
-            throw new AutomationException("Response did not match expected POJO: " + type.getName() + e);
+            throw new AutomationException("JSON parse failed: " + e.getMessage());
         }
     }
 
-    public <T> T responseToPojo(TypeReference<T> type) throws AutomationException {
+    public <T> T toPojo(TypeReference<T> type) throws AutomationException {
         try {
-            return new ObjectMapper()
-                    .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-                    .readValue(getApiResponseAsString(), type);
+            return mapper.readValue(asString(), type);
         } catch (IOException e) {
             throw new AutomationException(e);
         }
