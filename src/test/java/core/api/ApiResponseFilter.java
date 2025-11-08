@@ -53,8 +53,7 @@ public class ApiResponseFilter implements Filter {
 
         ExtentTestManager.getTest()
                 .log(Status.INFO,
-                        MarkupHelper.createCodeBlock(
-                                "📤 REQUEST:\n" + requestStr + "\n\n📥 RESPONSE:\n" + responseStr
+                        MarkupHelper.createCodeBlock(requestStr, responseStr
                         )
                 );
 

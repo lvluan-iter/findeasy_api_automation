@@ -20,12 +20,16 @@ public class ExtentReportManager {
     public static ExtentReports createInstance(String fileName) {
         ExtentSparkReporter spark = new ExtentSparkReporter(fileName);
 
-        spark.config().setTheme(Theme.STANDARD);
-        spark.config().setDocumentTitle(reportFileName);
-        spark.config().setReportName(reportFileName);
-        spark.config().setEncoding("UTF-8");
-        spark.config().setCss(PathConstants.EXTENT_CSS_PATH);
-        spark.config().setTimelineEnabled(true);
+        spark.config()
+                .setTheme(Theme.STANDARD);
+        spark.config()
+                .setDocumentTitle(reportFileName);
+        spark.config()
+                .setReportName(reportFileName);
+        spark.config()
+                .setEncoding("UTF-8");
+        spark.config()
+                .setTimelineEnabled(true);
 
         extent = new ExtentReports();
         extent.attachReporter(spark);

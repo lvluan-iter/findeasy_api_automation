@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 public class ApiResponse<T> {
     private boolean succeeded;
     private T result;
-    private Object error;
+    private Object errors;
 }

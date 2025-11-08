@@ -3,6 +3,7 @@ package core.api;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.ConfigReader;
 import enums.UserRole;
@@ -24,7 +25,6 @@ import static io.restassured.RestAssured.given;
 public class ApiClient {
 
     private RequestSpecBuilder requestSpecBuilder;
-    private RequestSpecification requestSpecification;
     private Response apiResponse;
     private static final ObjectMapper mapper = new ObjectMapper()
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
@@ -58,8 +58,8 @@ public class ApiClient {
         RestAssured.config = RestAssured.config()
                 .httpClient(
                         HttpClientConfig.httpClientConfig()
-                                .setParam("http.connection.timeout", 210000)
-                                .setParam("http.socket.timeout", 210000)
+                                .setParam("http.connection.timeout", PathConstants.API_TIMEOUT)
+                                .setParam("http.socket.timeout", PathConstants.API_TIMEOUT)
                 );
     }
 
@@ -117,11 +117,9 @@ public class ApiClient {
     }
 
     private ApiClient execute(String method) {
-        requestSpecification = requestSpecBuilder.build();
+        RequestSpecification requestSpecification = requestSpecBuilder.build();
 
         apiResponse = given()
-                .log()
-                .all()
                 .filter(new ApiResponseFilter())
                 .spec(requestSpecification)
                 .when()

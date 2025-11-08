@@ -6,7 +6,6 @@ import com.aventstack.extentreports.ExtentTest;
 public class ExtentTestManager {
 
     private static final ThreadLocal<ExtentTest> suiteNode = new ThreadLocal<>();
-    private static final ThreadLocal<ExtentTest> classNode = new ThreadLocal<>();
     private static final ThreadLocal<ExtentTest> testNode = new ThreadLocal<>();
 
     public static void createSuite(String suiteName) {
@@ -14,15 +13,11 @@ public class ExtentTestManager {
         suiteNode.set(extent.createTest(suiteName));
     }
 
-    public static void createClassNode(String className) {
-        ExtentTest cls = suiteNode.get().createNode(className);
-        classNode.set(cls);
-    }
-
     public static void createTestNode(String testName, String description) {
-        ExtentTest test = classNode.get().createNode(
-                description == null || description.isEmpty() ? testName : description
-        );
+        ExtentTest test = suiteNode.get()
+                .createNode(
+                        description == null || description.isEmpty() ? testName : description
+                );
         testNode.set(test);
     }
 
@@ -30,7 +25,7 @@ public class ExtentTestManager {
         return testNode.get();
     }
 
-    public static ExtentTest getClassNode() {
-        return classNode.get();
+    public static ExtentTest getSuitNode() {
+        return suiteNode.get();
     }
 }
