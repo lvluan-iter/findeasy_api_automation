@@ -1,53 +1,61 @@
 package core.base;
 
-import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import core.report.ExtentReportManager;
-import org.testng.*;
+import core.report.ExtentTestManager;
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.ITestResult;
+import org.testng.annotations.Test;
 
-public class TestListener implements ITestListener, ISuiteListener {
+import java.lang.reflect.Method;
 
-    private static ExtentReports extent;
-    private static final ThreadLocal<ExtentTest> methodTest = new ThreadLocal<>();
-
+public class TestListener implements ITestListener {
     @Override
-    public void onStart(ISuite suite) {
-        extent = ExtentReportManager.getInstance();
+    public void onStart(ITestContext context) {
+        String className = context.getAllTestMethods()[0].getRealClass()
+                .getSimpleName();
+        ExtentTestManager.createSuite(className);
     }
 
     @Override
-    public void onFinish(ISuite suite) {
-        if (extent != null) {
-            extent.flush();
-        }
+    public void onFinish(ITestContext context) {
+        ExtentReportManager.getInstance()
+                .flush();
     }
 
     @Override
     public void onTestStart(ITestResult result) {
-        ExtentTest testNode = extent.createTest(result.getMethod().getMethodName());
+        Method method = result.getMethod()
+                .getConstructorOrMethod()
+                .getMethod();
 
-        testNode.assignCategory(result.getTestClass().getName());
-
-        methodTest.set(testNode);
+        String desc = "";
+        if (method.isAnnotationPresent(Test.class)) {
+            desc = method.getAnnotation(Test.class)
+                    .description();
+        }
+        ExtentTestManager.createTestNode(method.getName(), desc);
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        methodTest.get().pass("PASSED");
+        ExtentTest test = ExtentTestManager.getTest();
+        if (test != null)
+            test.pass("✅ Test Passed");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        methodTest.get().fail(result.getThrowable());
+        ExtentTest test = ExtentTestManager.getTest();
+        if (test != null)
+            test.fail(result.getThrowable());
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        methodTest.get().skip("SKIPPED");
-    }
-
-    @Override
-    public void onStart(ITestContext context) {
-        methodTest.remove();
+        ExtentTest test = ExtentTestManager.getTest();
+        if (test != null)
+            test.skip("⚠️ Test Skipped");
     }
 }
