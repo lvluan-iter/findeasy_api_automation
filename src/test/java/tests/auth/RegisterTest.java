@@ -44,15 +44,7 @@ public class RegisterTest {
     @Test(description = "Verify user can register successfully with all fields")
     public void verifyUserCanRegisterSuccessfullyWithRequiredData() throws AutomationException {
 
-        Response registerResponse = authService.register(
-                        registerData.getUsername(),
-                        registerData.getEmail(),
-                        registerData.getPassword(),
-                        registerData.getFullname(),
-                        registerData.getPhoneNumber(),
-                        registerData.getGender(),
-                        registerData.getBirthdate()
-                )
+        Response registerResponse = authService.register(registerData)
                 .getResponse();
 
         AssertApiResponse.createSuccess(registerResponse);
@@ -62,15 +54,15 @@ public class RegisterTest {
 
     @Test(description = "Verify user can register successfully with only required fields")
     public void verifyUserCanRegisterSuccessfullyWithRequiredField() throws AutomationException {
-
+        RegisterRequest payload = new RegisterRequest(registerData.getUsername(),
+                registerData.getEmail(),
+                registerData.getPassword(),
+                registerData.getFullname(),
+                registerData.getPhoneNumber(),
+                null,
+                null);
         Response registerResponse = authService.register(
-                        registerData.getUsername(),
-                        registerData.getEmail(),
-                        registerData.getPassword(),
-                        registerData.getFullname(),
-                        registerData.getPhoneNumber(),
-                        null,
-                        null
+                        payload
                 )
                 .getResponse();
 
@@ -81,15 +73,15 @@ public class RegisterTest {
 
     @Test(description = "Verify user cannot register with existing username fields")
     public void verifyUserCanRegisterWithExistingUsernameField() throws AutomationException {
-
+        RegisterRequest payload = new RegisterRequest(adminData.getUsername(),
+                registerData.getEmail(),
+                registerData.getPassword(),
+                registerData.getFullname(),
+                registerData.getPhoneNumber(),
+                null,
+                null);
         Response registerResponse = authService.register(
-                        adminData.getUsername(),
-                        registerData.getEmail(),
-                        registerData.getPassword(),
-                        registerData.getFullname(),
-                        registerData.getPhoneNumber(),
-                        null,
-                        null
+                        payload
                 )
                 .getResponse();
 
@@ -98,15 +90,15 @@ public class RegisterTest {
 
     @Test(description = "Verify user cannot register with existing email fields")
     public void verifyUserCanRegisterWithExistingEmailField() throws AutomationException {
-
+        RegisterRequest payload = new RegisterRequest(registerData.getUsername(),
+                adminData.getEmail(),
+                registerData.getPassword(),
+                registerData.getFullname(),
+                registerData.getPhoneNumber(),
+                null,
+                null);
         Response registerResponse = authService.register(
-                        registerData.getUsername(),
-                        adminData.getEmail(),
-                        registerData.getPassword(),
-                        registerData.getFullname(),
-                        registerData.getPhoneNumber(),
-                        null,
-                        null
+                        payload
                 )
                 .getResponse();
 
@@ -115,15 +107,15 @@ public class RegisterTest {
 
     @Test(description = "Verify user cannot register with invalid password fields")
     public void verifyUserCanRegisterWithInvalidPasswordField() throws AutomationException {
-
+        RegisterRequest payload = new RegisterRequest(registerData.getUsername(),
+                registerData.getEmail(),
+                "abc",
+                registerData.getFullname(),
+                registerData.getPhoneNumber(),
+                null,
+                null);
         Response registerResponse = authService.register(
-                        registerData.getUsername(),
-                        registerData.getEmail(),
-                        "abc",
-                        registerData.getFullname(),
-                        registerData.getPhoneNumber(),
-                        null,
-                        null
+                        payload
                 )
                 .getResponse();
 

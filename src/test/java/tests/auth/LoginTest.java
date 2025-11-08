@@ -40,7 +40,7 @@ public class LoginTest {
     @Test(description = "Verify admin can login successfully", groups = {"smoke"})
     public void verifyAdminCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = authService
-                .login(adminData.getUsername(), adminData.getPassword())
+                .login(adminData)
                 .getResponse();
 
         AssertApiResponse.success(loginResponse);
@@ -49,7 +49,7 @@ public class LoginTest {
     @Test(description = "Verify user can login successfully", groups = {"smoke"})
     public void verifyUserCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = authService
-                .login(userData.getUsername(), userData.getPassword())
+                .login(userData)
                 .getResponse();
 
         AssertApiResponse.success(loginResponse);
@@ -57,8 +57,9 @@ public class LoginTest {
 
     @Test(description = "Verify admin cannot login with invalid username or password", groups = {"negative"})
     public void verifyAdminCannotLoginWithInvalidUsernameOrPassword() throws AutomationException {
+        LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), userData.getUsername());
         Response loginResponse = authService
-                .login(adminData.getUsername(), adminData.getUsername())
+                .login(invalidPayload)
                 .getResponse();
 
         AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
@@ -66,8 +67,9 @@ public class LoginTest {
 
     @Test(description = "Verify admin cannot login with null username or password", groups = {"negative"})
     public void verifyAdminCannotLoginWithNullUsernameOrPassword() throws AutomationException {
+        LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), null);
         Response loginResponse = authService
-                .login(adminData.getUsername(), null)
+                .login(invalidPayload)
                 .getResponse();
 
         AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);

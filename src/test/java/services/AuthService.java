@@ -4,10 +4,6 @@ import core.api.ApiClient;
 import core.exceptions.AutomationException;
 import endpoints.AuthEndpoints;
 import io.restassured.response.Response;
-import models.LoginRequest;
-import models.RegisterRequest;
-
-import java.sql.Date;
 
 public class AuthService {
 
@@ -20,33 +16,20 @@ public class AuthService {
         return new AuthService();
     }
 
-    public AuthService login(String username, String password) throws AutomationException {
-        LoginRequest loginRequest = new LoginRequest(username, password);
-
+    public AuthService login(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
                 .path(AuthEndpoints.LOGIN)
-                .body(loginRequest)
+                .body(payload)
                 .post()
                 .response();
 
         return this;
     }
 
-    public AuthService register(String username, String email, String password, String fullname,
-                                String phoneNumber, String gender, Date birthdate) throws AutomationException {
-        RegisterRequest request = RegisterRequest.builder()
-                .username(username)
-                .email(email)
-                .password(password)
-                .fullname(fullname)
-                .phoneNumber(phoneNumber)
-                .gender(gender)
-                .birthdate(birthdate)
-                .build();
-
+    public AuthService register(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
                 .path(AuthEndpoints.REGISTER)
-                .body(request)
+                .body(payload)
                 .post()
                 .response();
 
