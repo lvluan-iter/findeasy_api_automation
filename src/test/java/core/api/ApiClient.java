@@ -3,7 +3,7 @@ package core.api;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.constants.PathConstants;
+import core.constants.CommonConstants;
 import core.exceptions.AutomationException;
 import core.utils.ConfigReader;
 import enums.UserRole;
@@ -58,8 +58,8 @@ public class ApiClient {
         RestAssured.config = RestAssured.config()
                 .httpClient(
                         HttpClientConfig.httpClientConfig()
-                                .setParam("http.connection.timeout", PathConstants.API_TIMEOUT)
-                                .setParam("http.socket.timeout", PathConstants.API_TIMEOUT)
+                                .setParam("http.connection.timeout", CommonConstants.API_TIMEOUT)
+                                .setParam("http.socket.timeout", CommonConstants.API_TIMEOUT)
                 );
     }
 

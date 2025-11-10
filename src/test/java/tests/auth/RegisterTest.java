@@ -2,10 +2,10 @@ package tests.auth;
 
 import core.api.AssertApiResponse;
 import core.base.TestListener;
+import core.constants.ErrorMessages;
 import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
-import enums.ErrorMessages;
 import enums.UserRole;
 import io.restassured.response.Response;
 import models.RegisterRequest;
@@ -25,7 +25,7 @@ public class RegisterTest {
     private UserService userServiceForAdmin;
     private Long createdUserId;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void init() {
         registerData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON, RegisterRequest.class, "anonymous");
         adminData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON, RegisterRequest.class, "admin");

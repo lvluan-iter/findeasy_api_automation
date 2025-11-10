@@ -78,4 +78,14 @@ public class Randomizer {
         return ((int) (Math.random() * (maximum - minimum))) + minimum;
     }
 
+    public static String randomEmail() {
+        String localPart = "user_" + randomAlphaNumeric(6).toLowerCase();
+        String domain = "@example.com";
+        return localPart + domain;
+    }
+    
+    public static String randomEmail(String domain) {
+        String localPart = "user_" + randomAlphaNumeric(6).toLowerCase();
+        return localPart + "@" + domain;
+    }
 }

@@ -10,7 +10,10 @@
   },
   "user": {
     "username": "luan0907",
-    "password": "Luan@0907"
+    "email": "levan.luan@heineken.com",
+    "password": "Luan@0907",
+    "currentPassword": "Luan@0907",
+    "newPassword": "Luan@2003"
   },
   "anonymous": {
     "username": "luanle",

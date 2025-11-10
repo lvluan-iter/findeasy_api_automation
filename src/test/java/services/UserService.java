@@ -38,6 +38,17 @@ public class UserService {
         return this;
     }
 
+    public UserService changePassword(Long userId, Object payload) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .auth(role)
+                .path(UserEndpoints.CHANGE_PASSWORD)
+                .pathParam("id", userId.toString())
+                .body(payload)
+                .put()
+                .response();
+        return this;
+    }
+
     public Response getResponse() {
         return apiResponse;
     }

@@ -1,4 +1,4 @@
-package core.constants;
+package enums;
 
 public enum HttpStatus {
     OK(200, "OK"),

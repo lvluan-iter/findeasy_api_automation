@@ -2,10 +2,10 @@ package tests.auth;
 
 import core.api.AssertApiResponse;
 import core.base.TestListener;
+import core.constants.ErrorMessages;
 import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
-import enums.ErrorMessages;
 import io.restassured.response.Response;
 import models.LoginRequest;
 import org.testng.annotations.BeforeClass;
@@ -20,7 +20,7 @@ public class LoginTest {
     private LoginRequest userData;
     private AuthService authService;
 
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     public void setUp() {
         adminData = JsonUtils.readJson(
                 PathConstants.ACCOUNT_JSON,
