@@ -22,7 +22,6 @@ public class AuthService {
                 .body(payload)
                 .post()
                 .response();
-
         return this;
     }
 
@@ -32,7 +31,15 @@ public class AuthService {
                 .body(payload)
                 .post()
                 .response();
-
+        return this;
+    }
+    
+    public AuthService forgotPassword(Object payload) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .path(AuthEndpoints.FORGOT_PASSWORD)
+                .body(payload)
+                .post()
+                .response();
         return this;
     }
 
