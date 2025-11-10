@@ -18,6 +18,15 @@ public class UserService {
         return new UserService(role);
     }
 
+    public UserService getAllUsers() throws AutomationException {
+        apiResponse = ApiClient.init()
+                .auth(role)
+                .path(UserEndpoints.USER_ENDPOINT)
+                .get()
+                .response();
+        return this;
+    }
+
     public UserService getUserByUsername(String username) throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)
