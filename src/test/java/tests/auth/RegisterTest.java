@@ -27,8 +27,10 @@ public class RegisterTest {
 
     @BeforeClass(alwaysRun = true)
     public void init() {
-        registerData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON, RegisterRequest.class, "anonymous");
-        adminData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON, RegisterRequest.class, "admin");
+        registerData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON,
+                RegisterRequest.class,
+                UserRole.GUEST.getRoleName());
+        adminData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON, RegisterRequest.class, UserRole.ADMIN.getRoleName());
         authService = AuthService.init();
         userServiceForAdmin = UserService.init(UserRole.ADMIN);
     }

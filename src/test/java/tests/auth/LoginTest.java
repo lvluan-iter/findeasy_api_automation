@@ -6,6 +6,7 @@ import core.constants.ErrorMessages;
 import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
+import enums.UserRole;
 import io.restassured.response.Response;
 import models.LoginRequest;
 import org.testng.annotations.BeforeClass;
@@ -25,13 +26,13 @@ public class LoginTest {
         adminData = JsonUtils.readJson(
                 PathConstants.ACCOUNT_JSON,
                 LoginRequest.class,
-                "admin"
+                UserRole.ADMIN.getRoleName()
         );
 
         userData = JsonUtils.readJson(
                 PathConstants.ACCOUNT_JSON,
                 LoginRequest.class,
-                "user"
+                UserRole.USER.getRoleName()
         );
 
         authService = AuthService.init();

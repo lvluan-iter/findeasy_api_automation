@@ -7,8 +7,7 @@ public enum UserRole {
     ADMIN("admin"),
     USER("user"),
     OWNER("owner"),
-    GUEST("guest"),
-    ANONYMOUS("anonymous");
+    GUEST("guest");
 
     private final String roleName;
 

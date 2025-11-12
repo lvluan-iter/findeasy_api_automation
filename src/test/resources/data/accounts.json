@@ -15,7 +15,7 @@
     "currentPassword": "Luan@0907",
     "newPassword": "Luan@2003"
   },
-  "anonymous": {
+  "guest": {
     "username": "luanle",
     "email": "luan.user@example.com",
     "password": "Luan@0907",
