@@ -19,7 +19,7 @@ public class TokenManager {
     private static final Map<UserRole, Long> tokenExpiry = new EnumMap<>(UserRole.class);
 
     public static synchronized String getToken(UserRole role) throws AutomationException {
-        if (role == UserRole.ANONYMOUS) return null;
+        if (role == UserRole.GUEST) return null;
 
         if (!tokens.containsKey(role) || isExpired(role)) {
             refreshToken(role);

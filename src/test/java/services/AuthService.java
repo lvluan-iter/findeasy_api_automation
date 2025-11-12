@@ -33,7 +33,7 @@ public class AuthService {
                 .response();
         return this;
     }
-    
+
     public AuthService forgotPassword(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
                 .path(AuthEndpoints.FORGOT_PASSWORD)
