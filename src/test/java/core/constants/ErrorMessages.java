@@ -9,6 +9,7 @@ public final class ErrorMessages {
     public static final String INVALID_PASSWORD = "New password does not meet complexity requirements";
     public static final String NEW_PASSWORD_MUST_BE_DIFFERENT_CURRENT = "New password must be different from the current password";
     public static final String USER_NOT_FOUND_WITH_EMAIL = "User not found with email: ";
+    public static final String LOCATION_NOT_FOUND = "Location not found with id: ";
 
     private ErrorMessages() {
     }
