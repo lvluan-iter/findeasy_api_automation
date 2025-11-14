@@ -20,11 +20,31 @@ public class LocationService {
 
     public LocationService getAllLocations() throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(LocationEndpoints.GET_ALL_LOCATION)
+                .path(LocationEndpoints.LOCATION_ENDPOINT)
                 .auth(role)
                 .get()
                 .response();
 
+        return this;
+    }
+
+    public LocationService createLocation(Object payload) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .path(LocationEndpoints.LOCATION_ENDPOINT)
+                .auth(role)
+                .body(payload)
+                .post()
+                .response();
+        return this;
+    }
+
+    public LocationService deleteLocation(Long locationId) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .auth(role)
+                .path(LocationEndpoints.LOCATION_ENDPOINT + "/{id}")
+                .pathParam("id", locationId.toString())
+                .delete()
+                .response();
         return this;
     }
 
