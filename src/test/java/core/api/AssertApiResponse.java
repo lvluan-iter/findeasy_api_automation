@@ -14,7 +14,8 @@ public class AssertApiResponse {
     }
 
     private static void checkSucceeded(Response response, boolean expected) {
-        boolean actual = response.jsonPath().getBoolean("succeeded");
+        boolean actual = response.jsonPath()
+                .getBoolean("succeeded");
         Assert.assertEquals(
                 expected,
                 actual,
@@ -28,7 +29,8 @@ public class AssertApiResponse {
         if (expectedErrorMessage == null) {
             return;
         }
-        String actualMsg = response.jsonPath().getString("errors[0]");
+        String actualMsg = response.jsonPath()
+                .getString("errors[0]");
         Assert.assertEquals(expectedErrorMessage, actualMsg,
                 "Expected error message " + expectedErrorMessage +
                         " but got " + actualMsg);
@@ -53,7 +55,7 @@ public class AssertApiResponse {
     }
 
     public static void successNoContent(Response response) {
-        checkResponse(response, 204, true, null);
+        checkStatus(response, 204);
     }
 
     public static void badRequest(Response response, String msg) {
@@ -76,7 +78,7 @@ public class AssertApiResponse {
         checkResponse(response, 409, false, msg);
     }
 
-    public static void unknown(Response response, String msg) {
+    public static void internalServerError(Response response, String msg) {
         checkResponse(response, 500, false, msg);
     }
 }

@@ -71,7 +71,7 @@ public class ChangePasswordTest {
 
         Response response = userService.changePassword(id, payload)
                 .getResponse();
-        AssertApiResponse.unknown(response, ErrorMessages.NEW_PASSWORD_MUST_BE_DIFFERENT_CURRENT);
+        AssertApiResponse.internalServerError(response, ErrorMessages.NEW_PASSWORD_MUST_BE_DIFFERENT_CURRENT);
     }
 
     @Test(description = "Verify user cannot change password if new password does not meet requirement")
@@ -85,7 +85,7 @@ public class ChangePasswordTest {
 
         Response response = userService.changePassword(id, payload)
                 .getResponse();
-        AssertApiResponse.unknown(response, ErrorMessages.INVALID_PASSWORD);
+        AssertApiResponse.internalServerError(response, ErrorMessages.INVALID_PASSWORD);
     }
 
     private void rollbackPassword(Long id) throws AutomationException {

@@ -121,6 +121,6 @@ public class RegisterTest {
                 )
                 .getResponse();
 
-        AssertApiResponse.unknown(registerResponse, ErrorMessages.INVALID_PASSWORD);
+        AssertApiResponse.internalServerError(registerResponse, ErrorMessages.INVALID_PASSWORD);
     }
 }
