@@ -38,6 +38,17 @@ public class LocationService {
         return this;
     }
 
+    public LocationService updateLocation(Long locationId, Object payload) throws AutomationException {
+        apiResponse = ApiClient.init()
+                .path(LocationEndpoints.LOCATION_ENDPOINT + "/{id}")
+                .pathParam("id", locationId.toString())
+                .auth(role)
+                .body(payload)
+                .put()
+                .response();
+        return this;
+    }
+
     public LocationService deleteLocation(Long locationId) throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)

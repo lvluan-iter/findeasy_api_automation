@@ -6,6 +6,7 @@ import core.constants.ErrorMessages;
 import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
+import enums.DataType;
 import enums.UserRole;
 import io.restassured.response.Response;
 import models.Location;
@@ -26,7 +27,7 @@ public class CreateLocationTest {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        locationData = JsonUtils.readJson(PathConstants.LOCATION_JSON, Location.class);
+        locationData = JsonUtils.readJson(PathConstants.LOCATION_JSON, Location.class, DataType.CREATED.getName());
         adminService = LocationService.init(UserRole.ADMIN);
         userService = LocationService.init(UserRole.USER);
         guestService = LocationService.init(UserRole.GUEST);
