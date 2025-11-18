@@ -1,10 +1,10 @@
 package tests.user;
 
 import core.api.AssertApiResponse;
-import core.base.TestListener;
 import core.exceptions.AutomationException;
 import enums.UserRole;
 import io.restassured.response.Response;
+import listeners.TestListener;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;

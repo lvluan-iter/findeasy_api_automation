@@ -1,13 +1,13 @@
 package tests.auth;
 
 import core.api.AssertApiResponse;
-import core.base.TestListener;
 import core.constants.ErrorMessages;
 import core.constants.PathConstants;
 import core.exceptions.AutomationException;
 import core.utils.JsonUtils;
 import enums.UserRole;
 import io.restassured.response.Response;
+import listeners.TestListener;
 import models.RegisterRequest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
