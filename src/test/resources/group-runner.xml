@@ -1,0 +1,18 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="${suiteName}">
+
+    <parameter name="groups" value="smoke"/>
+
+    <test name="${suiteName}">
+        <groups>
+            <run>
+                <include name="${groups}"/>
+            </run>
+        </groups>
+
+        <packages>
+            <package name="tests.*"/>
+        </packages>
+
+    </test>
+</suite>
