@@ -12,6 +12,7 @@ import services.UserService;
 
 @Listeners(TestListener.class)
 public class GetAllUsersTest {
+
     private UserService userServiceForAdmin;
     private UserService userService;
 
@@ -21,17 +22,27 @@ public class GetAllUsersTest {
         userService = UserService.init(UserRole.USER);
     }
 
-    @Test(description = "Verify admin can get user list successfully")
+    @Test(
+            description = "Verify admin can get user list successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyAdminCanGetUserList() throws AutomationException {
-        Response response = userServiceForAdmin.getAllUsers()
+        Response response = userServiceForAdmin
+                .getAllUsers()
                 .getResponse();
+
         AssertApiResponse.success(response);
     }
 
-    @Test(description = "Verify user can also get user list successfully")
+    @Test(
+            description = "Verify user can also get user list successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanGetUserList() throws AutomationException {
-        Response response = userService.getAllUsers()
+        Response response = userService
+                .getAllUsers()
                 .getResponse();
+
         AssertApiResponse.success(response);
     }
 }

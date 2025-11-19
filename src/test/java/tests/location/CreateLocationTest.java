@@ -27,13 +27,21 @@ public class CreateLocationTest {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        locationData = JsonUtils.readJson(PathConstants.LOCATION_JSON, Location.class, DataType.CREATED.getName());
+        locationData = JsonUtils.readJson(
+                PathConstants.LOCATION_JSON,
+                Location.class,
+                DataType.CREATED.getName()
+        );
+
         adminService = LocationService.init(UserRole.ADMIN);
         userService = LocationService.init(UserRole.USER);
         guestService = LocationService.init(UserRole.GUEST);
     }
 
-    @Test(description = "Verify that admin can create a location successfully")
+    @Test(
+            description = "Verify that admin can create a location successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyAdminCanCreateLocationSuccessfully() throws AutomationException {
         Response response = adminService.createLocation(locationData)
                 .getResponse();
@@ -44,7 +52,10 @@ public class CreateLocationTest {
                 .getLong("result.id");
     }
 
-    @Test(description = "Verify that normal user cannot create a location")
+    @Test(
+            description = "Verify that normal user cannot create a location",
+            groups = {"regression"}
+    )
     public void verifyUserCannotCreateLocation() throws AutomationException {
         Response response = userService.createLocation(locationData)
                 .getResponse();
@@ -52,7 +63,10 @@ public class CreateLocationTest {
         AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
     }
 
-    @Test(description = "Verify that guest cannot create a location")
+    @Test(
+            description = "Verify that guest cannot create a location",
+            groups = {"regression"}
+    )
     public void verifyGuestCannotCreateLocation() throws AutomationException {
         Response response = guestService.createLocation(locationData)
                 .getResponse();

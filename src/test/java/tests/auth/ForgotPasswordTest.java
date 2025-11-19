@@ -23,7 +23,7 @@ public class ForgotPasswordTest {
     private User userData;
 
     @BeforeClass(alwaysRun = true)
-    public void setUp() throws AutomationException {
+    public void setUp() {
         userData = JsonUtils.readJson(
                 PathConstants.ACCOUNT_JSON,
                 User.class,
@@ -32,7 +32,10 @@ public class ForgotPasswordTest {
         authService = AuthService.init();
     }
 
-    @Test(description = "Verify user can get link to reset password successfully")
+    @Test(
+            description = "Verify user can get link to reset password successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanGetLinkToResetPasswordSuccessfully() throws AutomationException {
         ForgotPasswordRequest payload = new ForgotPasswordRequest(userData.getEmail());
 
@@ -41,7 +44,10 @@ public class ForgotPasswordTest {
         AssertApiResponse.success(response);
     }
 
-    @Test(description = "Verify user cannot get reset link when email does not exist")
+    @Test(
+            description = "Verify user cannot get reset link when email does not exist",
+            groups = {"regression"}
+    )
     public void verifyUserCannotGetLinkWhenUserNotFound() throws AutomationException {
         String email = Randomizer.randomEmail();
         ForgotPasswordRequest payload = new ForgotPasswordRequest(email);

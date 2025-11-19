@@ -38,7 +38,10 @@ public class LoginTest {
         authService = AuthService.init();
     }
 
-    @Test(description = "Verify admin can login successfully", groups = {"smoke"})
+    @Test(
+            description = "Verify admin can login successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyAdminCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = authService
                 .login(adminData)
@@ -47,7 +50,10 @@ public class LoginTest {
         AssertApiResponse.success(loginResponse);
     }
 
-    @Test(description = "Verify user can login successfully", groups = {"smoke"})
+    @Test(
+            description = "Verify user can login successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = authService
                 .login(userData)
@@ -56,9 +62,13 @@ public class LoginTest {
         AssertApiResponse.success(loginResponse);
     }
 
-    @Test(description = "Verify admin cannot login with invalid username or password", groups = {"negative"})
+    @Test(
+            description = "Verify admin cannot login with invalid username or password",
+            groups = {"regression"}
+    )
     public void verifyAdminCannotLoginWithInvalidUsernameOrPassword() throws AutomationException {
         LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), userData.getUsername());
+
         Response loginResponse = authService
                 .login(invalidPayload)
                 .getResponse();
@@ -66,9 +76,13 @@ public class LoginTest {
         AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
     }
 
-    @Test(description = "Verify admin cannot login with null username or password", groups = {"negative"})
+    @Test(
+            description = "Verify admin cannot login with null username or password",
+            groups = {"regression"}
+    )
     public void verifyAdminCannotLoginWithNullUsernameOrPassword() throws AutomationException {
         LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), null);
+
         Response loginResponse = authService
                 .login(invalidPayload)
                 .getResponse();

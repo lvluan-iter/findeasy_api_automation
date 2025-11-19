@@ -39,7 +39,10 @@ public class UpdateLocationTest {
         guestService = LocationService.init(UserRole.GUEST);
     }
 
-    @Test(description = "Verify admin can update a location successfully")
+    @Test(
+            description = "Verify admin can update a location successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyAdminCanUpdateLocationSuccessfully() throws AutomationException {
         Location payload = Location.builder()
                 .name(locationData.getName() + "Test")
@@ -49,19 +52,20 @@ public class UpdateLocationTest {
 
         Response response = adminService.updateLocation(locationData.getId(), payload)
                 .getResponse();
+
         AssertApiResponse.success(response);
         Assert.assertEquals(
-                response.jsonPath()
-                        .getString("result.name"),
+                response.jsonPath().getString("result.name"),
                 payload.getName()
         );
 
-        updatedLocationId = response.jsonPath()
-                .getLong("result.id");
+        updatedLocationId = response.jsonPath().getLong("result.id");
     }
 
-
-    @Test(description = "Verify normal user cannot update location")
+    @Test(
+            description = "Verify normal user cannot update location",
+            groups = {"regression"}
+    )
     public void verifyUserCannotUpdateLocation() throws AutomationException {
         Location payload = Location.builder()
                 .name(locationData.getName() + "Test")
@@ -75,8 +79,10 @@ public class UpdateLocationTest {
         AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
     }
 
-
-    @Test(description = "Verify guest cannot update location")
+    @Test(
+            description = "Verify guest cannot update location",
+            groups = {"regression"}
+    )
     public void verifyGuestCannotUpdateLocation() throws AutomationException {
         Location payload = Location.builder()
                 .name(locationData.getName() + "Test")
@@ -90,7 +96,6 @@ public class UpdateLocationTest {
         AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
     }
 
-
     @AfterMethod(alwaysRun = true)
     public void revertChanges() throws AutomationException {
         if (updatedLocationId != null) {
@@ -99,6 +104,7 @@ public class UpdateLocationTest {
                     .description(locationData.getDescription())
                     .url(locationData.getUrl())
                     .build();
+
             Response response = adminService.updateLocation(locationData.getId(), revertPayload)
                     .getResponse();
 

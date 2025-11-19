@@ -44,7 +44,10 @@ public class ChangePasswordTest {
         return userId;
     }
 
-    @Test(description = "Verify user can change password successfully")
+    @Test(
+            description = "Verify user can change password successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanChangePasswordSuccessfully() throws AutomationException {
         Long id = getUserId();
 
@@ -60,7 +63,10 @@ public class ChangePasswordTest {
         rollbackPassword(id);
     }
 
-    @Test(description = "Verify user cannot change password if new password is same as current password")
+    @Test(
+            description = "Verify user cannot change password if new password is same as current password",
+            groups = {"regression"}
+    )
     public void verifyUserCannotChangePasswordWhenSamePassword() throws AutomationException {
         Long id = getUserId();
 
@@ -71,10 +77,14 @@ public class ChangePasswordTest {
 
         Response response = userService.changePassword(id, payload)
                 .getResponse();
+
         AssertApiResponse.internalServerError(response, ErrorMessages.NEW_PASSWORD_MUST_BE_DIFFERENT_CURRENT);
     }
 
-    @Test(description = "Verify user cannot change password if new password does not meet requirement")
+    @Test(
+            description = "Verify user cannot change password if new password does not meet requirement",
+            groups = {"regression"}
+    )
     public void verifyUserCannotChangePasswordNotMeetRequirement() throws AutomationException {
         Long id = getUserId();
 
@@ -85,6 +95,7 @@ public class ChangePasswordTest {
 
         Response response = userService.changePassword(id, payload)
                 .getResponse();
+
         AssertApiResponse.internalServerError(response, ErrorMessages.INVALID_PASSWORD);
     }
 

@@ -13,9 +13,6 @@ import java.lang.reflect.Method;
 public class TestListener implements ITestListener {
     @Override
     public void onStart(ITestContext context) {
-        String className = context.getAllTestMethods()[0].getRealClass()
-                .getSimpleName();
-        ExtentTestManager.createSuite(className);
     }
 
     @Override
@@ -26,16 +23,16 @@ public class TestListener implements ITestListener {
 
     @Override
     public void onTestStart(ITestResult result) {
-        Method method = result.getMethod()
-                .getConstructorOrMethod()
-                .getMethod();
+        String className = result.getTestClass().getRealClass().getSimpleName();
 
-        String desc = "";
-        if (method.isAnnotationPresent(Test.class)) {
-            desc = method.getAnnotation(Test.class)
-                    .description();
-        }
-        ExtentTestManager.createTestNode(method.getName(), desc);
+        ExtentTest classNode = ExtentTestManager.getOrCreateClassNode(className);
+
+        Method method = result.getMethod().getConstructorOrMethod().getMethod();
+        String desc = method.isAnnotationPresent(Test.class)
+                ? method.getAnnotation(Test.class).description()
+                : method.getName();
+
+        ExtentTestManager.createTestNode(method.getName(), desc, classNode);
     }
 
     @Override

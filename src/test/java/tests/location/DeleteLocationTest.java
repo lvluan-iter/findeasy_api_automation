@@ -38,7 +38,10 @@ public class DeleteLocationTest {
         guestService = LocationService.init(UserRole.GUEST);
     }
 
-    @Test(description = "Verify admin can delete a location successfully")
+    @Test(
+            description = "Verify admin can delete a location successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyAdminCanDeleteLocationSuccessfully() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
@@ -54,7 +57,10 @@ public class DeleteLocationTest {
         locationId = null;
     }
 
-    @Test(description = "Verify normal user cannot delete location")
+    @Test(
+            description = "Verify normal user cannot delete location",
+            groups = {"regression"}
+    )
     public void verifyUserCannotDeleteLocation() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
@@ -67,9 +73,11 @@ public class DeleteLocationTest {
         AssertApiResponse.internalServerError(res, ErrorMessages.ACCESS_DENIED);
     }
 
-    @Test(description = "Verify guest cannot delete location")
+    @Test(
+            description = "Verify guest cannot delete location",
+            groups = {"regression"}
+    )
     public void verifyGuestCannotDeleteLocation() throws AutomationException {
-
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
         locationId = createRes.jsonPath()
@@ -81,7 +89,10 @@ public class DeleteLocationTest {
         AssertApiResponse.internalServerError(res, ErrorMessages.ACCESS_DENIED);
     }
 
-    @Test(description = "Verify admin deleting same location twice returns not found")
+    @Test(
+            description = "Verify admin deleting same location twice returns not found",
+            groups = {"regression"}
+    )
     public void verifyDeleteLocationTwice() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
