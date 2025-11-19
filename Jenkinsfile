@@ -16,8 +16,20 @@ pipeline {
         stage('Run Test') {
             steps {
                 bat """
-                    mvn clean test -Dgroups=%groups%
+                    mvn clean test
                 """
+            }
+        }
+
+        stage('Publish Extent Report') {
+            steps {
+                publishHTML(target: [
+                    reportDir: 'report',
+                    reportFiles: 'extent-report.html',
+                    reportName: 'Extent Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
             }
         }
     }
@@ -25,13 +37,24 @@ pipeline {
     post {
         always {
             script {
+                def testResult = junit 'target/surefire-reports/*.xml'
+
+                def total   = testResult.totalCount
+                def failed  = testResult.failCount
+                def skipped = testResult.skipCount
+                def passed  = total - failed - skipped
+
+                def extentLink = "${env.BUILD_URL}Extent_20Report/"
+
                 def message = """
-                              *FindEasy API Automation*
-                              *Suite:* ${suite}
-                              *Groups:* ${groups}
-                              *Status:* ${currentBuild.currentResult}
-                              *Build URL:* ${env.BUILD_URL}
-                              """
+                *FindEasy API Automation Result*
+                *Status:* ${currentBuild.currentResult}
+                *Passed:* ${passed}
+                *Failed:* ${failed}
+                *Skipped:* ${skipped}
+                *Total:* ${total}
+                *Report:* ${extentLink}
+                """
 
                 httpRequest(
                     httpMode: 'POST',
