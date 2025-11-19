@@ -8,7 +8,6 @@ import core.constants.PathConstants;
 public class ExtentReportManager {
 
     private static ExtentReports extent;
-    private static final String reportFileName = "ExecutionReport_" + System.getProperty("current.date") + ".html";
 
     public static ExtentReports getInstance() {
         if (extent == null) {
@@ -22,6 +21,7 @@ public class ExtentReportManager {
 
         spark.config()
                 .setTheme(Theme.STANDARD);
+        String reportFileName = "ExecutionReport.html";
         spark.config()
                 .setDocumentTitle(reportFileName);
         spark.config()

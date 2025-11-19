@@ -24,7 +24,10 @@ public class GetAllLocationsTest {
         locationServiceForGuest = LocationService.init(UserRole.GUEST);
     }
 
-    @Test(description = "Verify admin can get location list successfully")
+    @Test(
+            description = "Verify admin can get location list successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyAdminCanGetLocationListSuccessfully() throws AutomationException {
         Response response = locationServiceForAdmin
                 .getAllLocations()
@@ -33,7 +36,10 @@ public class GetAllLocationsTest {
         AssertApiResponse.success(response);
     }
 
-    @Test(description = "Verify user can get location list successfully")
+    @Test(
+            description = "Verify user can get location list successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanGetLocationListSuccessfully() throws AutomationException {
         Response response = locationServiceForUser
                 .getAllLocations()
@@ -42,7 +48,10 @@ public class GetAllLocationsTest {
         AssertApiResponse.success(response);
     }
 
-    @Test(description = "Verify guest can get location list successfully")
+    @Test(
+            description = "Verify guest can get location list successfully",
+            groups = {"smoke", "regression"}
+    )
     public void verifyGuestCanGetLocationList() throws AutomationException {
         Response response = locationServiceForGuest
                 .getAllLocations()

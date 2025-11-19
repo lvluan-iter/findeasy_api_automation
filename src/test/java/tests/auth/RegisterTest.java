@@ -27,15 +27,23 @@ public class RegisterTest {
 
     @BeforeClass(alwaysRun = true)
     public void init() {
-        registerData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON,
+        registerData = JsonUtils.readJson(
+                PathConstants.ACCOUNT_JSON,
                 RegisterRequest.class,
-                UserRole.GUEST.getRoleName());
-        adminData = JsonUtils.readJson(PathConstants.ACCOUNT_JSON, RegisterRequest.class, UserRole.ADMIN.getRoleName());
+                UserRole.GUEST.getRoleName()
+        );
+
+        adminData = JsonUtils.readJson(
+                PathConstants.ACCOUNT_JSON,
+                RegisterRequest.class,
+                UserRole.ADMIN.getRoleName()
+        );
+
         authService = AuthService.init();
         userServiceForAdmin = UserService.init(UserRole.ADMIN);
     }
 
-    @AfterMethod
+    @AfterMethod(alwaysRun = true)
     public void cleanup() throws AutomationException {
         if (createdUserId != null) {
             userServiceForAdmin.deleteUser(createdUserId);
@@ -43,82 +51,103 @@ public class RegisterTest {
         }
     }
 
-    @Test(description = "Verify user can register successfully with all fields")
+    @Test(
+            description = "Verify user can register successfully with all fields",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanRegisterSuccessfullyWithRequiredData() throws AutomationException {
 
         Response registerResponse = authService.register(registerData)
                 .getResponse();
 
         AssertApiResponse.createSuccess(registerResponse);
-        createdUserId = registerResponse.jsonPath()
-                .getLong("result.id");
+        createdUserId = registerResponse.jsonPath().getLong("result.id");
     }
 
-    @Test(description = "Verify user can register successfully with only required fields")
+    @Test(
+            description = "Verify user can register successfully with only required fields",
+            groups = {"smoke", "regression"}
+    )
     public void verifyUserCanRegisterSuccessfullyWithRequiredField() throws AutomationException {
-        RegisterRequest payload = new RegisterRequest(registerData.getUsername(),
+
+        RegisterRequest payload = new RegisterRequest(
+                registerData.getUsername(),
                 registerData.getEmail(),
                 registerData.getPassword(),
                 registerData.getFullname(),
                 registerData.getPhoneNumber(),
                 null,
-                null);
-        Response registerResponse = authService.register(
-                        payload
-                )
+                null
+        );
+
+        Response registerResponse = authService.register(payload)
                 .getResponse();
 
         AssertApiResponse.createSuccess(registerResponse);
-        createdUserId = registerResponse.jsonPath()
-                .getLong("result.id");
+        createdUserId = registerResponse.jsonPath().getLong("result.id");
     }
 
-    @Test(description = "Verify user cannot register with existing username fields")
+    @Test(
+            description = "Verify user cannot register with existing username fields",
+            groups = {"regression"}
+    )
     public void verifyUserCanRegisterWithExistingUsernameField() throws AutomationException {
-        RegisterRequest payload = new RegisterRequest(adminData.getUsername(),
+
+        RegisterRequest payload = new RegisterRequest(
+                adminData.getUsername(),
                 registerData.getEmail(),
                 registerData.getPassword(),
                 registerData.getFullname(),
                 registerData.getPhoneNumber(),
                 null,
-                null);
-        Response registerResponse = authService.register(
-                        payload
-                )
+                null
+        );
+
+        Response registerResponse = authService.register(payload)
                 .getResponse();
 
         AssertApiResponse.conflict(registerResponse, ErrorMessages.USERNAME_ALREADY_EXISTS);
     }
 
-    @Test(description = "Verify user cannot register with existing email fields")
+    @Test(
+            description = "Verify user cannot register with existing email fields",
+            groups = {"regression"}
+    )
     public void verifyUserCanRegisterWithExistingEmailField() throws AutomationException {
-        RegisterRequest payload = new RegisterRequest(registerData.getUsername(),
+
+        RegisterRequest payload = new RegisterRequest(
+                registerData.getUsername(),
                 adminData.getEmail(),
                 registerData.getPassword(),
                 registerData.getFullname(),
                 registerData.getPhoneNumber(),
                 null,
-                null);
-        Response registerResponse = authService.register(
-                        payload
-                )
+                null
+        );
+
+        Response registerResponse = authService.register(payload)
                 .getResponse();
 
         AssertApiResponse.conflict(registerResponse, ErrorMessages.EMAIL_ALREADY_EXISTS);
     }
 
-    @Test(description = "Verify user cannot register with invalid password fields")
+    @Test(
+            description = "Verify user cannot register with invalid password fields",
+            groups = {"regression"}
+    )
     public void verifyUserCanRegisterWithInvalidPasswordField() throws AutomationException {
-        RegisterRequest payload = new RegisterRequest(registerData.getUsername(),
+
+        RegisterRequest payload = new RegisterRequest(
+                registerData.getUsername(),
                 registerData.getEmail(),
                 "abc",
                 registerData.getFullname(),
                 registerData.getPhoneNumber(),
                 null,
-                null);
-        Response registerResponse = authService.register(
-                        payload
-                )
+                null
+        );
+
+        Response registerResponse = authService.register(payload)
                 .getResponse();
 
         AssertApiResponse.internalServerError(registerResponse, ErrorMessages.INVALID_PASSWORD);
