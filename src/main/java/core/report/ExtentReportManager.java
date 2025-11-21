@@ -29,7 +29,7 @@ public class ExtentReportManager {
         spark.config()
                 .setEncoding("UTF-8");
         spark.config()
-                .setTimelineEnabled(true);
+                .setTimelineEnabled(false);
         spark.config()
                 .setOfflineMode(true);
 
