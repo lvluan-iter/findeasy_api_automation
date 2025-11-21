@@ -44,7 +44,7 @@ pipeline {
                 def skipped = testResult.skipCount
                 def passed  = total - failed - skipped
 
-                def extentLink = "${env.BUILD_URL}HTML_20Report/"
+                def extentLink = "${env.BUILD_URL}artifact/report/extent-report.html"
 
                 def message = """
                               *FindEasy API Automation Result*
