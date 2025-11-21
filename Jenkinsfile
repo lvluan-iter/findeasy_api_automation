@@ -37,6 +37,7 @@ pipeline {
     post {
         always {
             script {
+                archiveArtifacts artifacts: 'report/extent-report.html', fingerprint: true
                 def testResult = junit 'target/surefire-reports/*.xml'
 
                 def total   = testResult.totalCount
