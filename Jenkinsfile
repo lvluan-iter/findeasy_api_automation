@@ -20,12 +20,23 @@ pipeline {
                 """
             }
         }
+
+        stage('Publish Extent Report') {
+            steps {
+                publishHTML(target: [
+                    reportDir: 'report',
+                    reportFiles: 'extent-report.html',
+                    reportName: 'Extent Report',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true
+                ])
+            }
+        }
     }
 
     post {
         always {
             script {
-                archiveArtifacts artifacts: 'report/extent-report.html', fingerprint: true
                 def testResult = junit 'target/surefire-reports/*.xml'
 
                 def total   = testResult.totalCount
@@ -33,17 +44,17 @@ pipeline {
                 def skipped = testResult.skipCount
                 def passed  = total - failed - skipped
 
-                def extentLink = "${env.BUILD_URL}artifact/report/extent-report.html"
+                def extentLink = "${env.BUILD_URL}HTML_20Report/"
 
                 def message = """
-                *FindEasy API Automation Result*
-                *Status:* ${currentBuild.currentResult}
-                *Passed:* ${passed}
-                *Failed:* ${failed}
-                *Skipped:* ${skipped}
-                *Total:* ${total}
-                *Report:* ${extentLink}
-                """
+                              *FindEasy API Automation Result*
+                              *Status:* ${currentBuild.currentResult}
+                              *Passed:* ${passed}
+                              *Failed:* ${failed}
+                              *Skipped:* ${skipped}
+                              *Total:* ${total}
+                              *Report:* ${extentLink}
+                              """
 
                 httpRequest(
                     httpMode: 'POST',
