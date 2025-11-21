@@ -32,6 +32,8 @@ public class ExtentReportManager {
                 .setTimelineEnabled(false);
         spark.config()
                 .setOfflineMode(true);
+        spark.config()
+                .setResourceCDN(ExtentResourceCDN.EMBEDDED);
 
         extent = new ExtentReports();
         extent.attachReporter(spark);
