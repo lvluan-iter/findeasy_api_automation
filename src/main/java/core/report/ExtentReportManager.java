@@ -30,6 +30,8 @@ public class ExtentReportManager {
                 .setEncoding("UTF-8");
         spark.config()
                 .setTimelineEnabled(true);
+        spark.config()
+                .setOfflineMode(true);
 
         extent = new ExtentReports();
         extent.attachReporter(spark);
