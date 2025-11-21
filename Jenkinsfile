@@ -27,8 +27,10 @@ pipeline {
                     reportDir: 'report',
                     reportFiles: 'extent-report.html',
                     reportName: 'Extent Report',
+                    allowMissing: false,
                     keepAll: true,
-                    alwaysLinkToLastBuild: true
+                    alwaysLinkToLastBuild: true,
+                    includes: 'spark/*' 
                 ])
             }
         }
@@ -48,7 +50,7 @@ pipeline {
                 def extentLink = "${env.BUILD_URL}artifact/report/extent-report.html"
 
                 def message = """
-                              *FindEasy API Automation Result*
+                              *${suite}*
                               *Status:* ${currentBuild.currentResult}
                               *Passed:* ${passed}
                               *Failed:* ${failed}
