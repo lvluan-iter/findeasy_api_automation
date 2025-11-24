@@ -1,9 +1,9 @@
 package services;
 
-import core.api.ApiClient;
-import core.exceptions.AutomationException;
-import endpoints.LocationEndpoints;
+import api.ApiClient;
+import api.Endpoints;
 import enums.UserRole;
+import exceptions.AutomationException;
 import io.restassured.response.Response;
 
 public class LocationService {
@@ -20,7 +20,7 @@ public class LocationService {
 
     public LocationService getAllLocations() throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(LocationEndpoints.LOCATION_ENDPOINT)
+                .path(Endpoints.LOCATION_ENDPOINT)
                 .auth(role)
                 .get()
                 .response();
@@ -30,7 +30,7 @@ public class LocationService {
 
     public LocationService createLocation(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(LocationEndpoints.LOCATION_ENDPOINT)
+                .path(Endpoints.LOCATION_ENDPOINT)
                 .auth(role)
                 .body(payload)
                 .post()
@@ -40,7 +40,7 @@ public class LocationService {
 
     public LocationService updateLocation(Long locationId, Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(LocationEndpoints.LOCATION_ENDPOINT + "/{id}")
+                .path(Endpoints.LOCATION_ENDPOINT + "/{id}")
                 .pathParam("id", locationId.toString())
                 .auth(role)
                 .body(payload)
@@ -52,7 +52,7 @@ public class LocationService {
     public LocationService deleteLocation(Long locationId) throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)
-                .path(LocationEndpoints.LOCATION_ENDPOINT + "/{id}")
+                .path(Endpoints.LOCATION_ENDPOINT + "/{id}")
                 .pathParam("id", locationId.toString())
                 .delete()
                 .response();

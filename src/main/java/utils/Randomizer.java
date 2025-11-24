@@ -1,4 +1,4 @@
-package core.utils;
+package utils;
 
 import java.util.Random;
 
@@ -83,7 +83,7 @@ public class Randomizer {
         String domain = "@example.com";
         return localPart + domain;
     }
-    
+
     public static String randomEmail(String domain) {
         String localPart = "user_" + randomAlphaNumeric(6).toLowerCase();
         return localPart + "@" + domain;

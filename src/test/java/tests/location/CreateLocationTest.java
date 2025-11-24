@@ -1,22 +1,25 @@
 package tests.location;
 
-import core.api.AssertApiResponse;
-import core.constants.ErrorMessages;
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
-import core.utils.JsonUtils;
+import api.AssertApiResponse;
+import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.DataType;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import models.Location;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.LocationService;
+import utils.JsonUtils;
 
-@Listeners(TestListener.class)
+@Epic("Location Management")
+@Feature("Create Location")
 public class CreateLocationTest {
 
     private Location locationData;
@@ -42,7 +45,9 @@ public class CreateLocationTest {
             description = "Verify that admin can create a location successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanCreateLocationSuccessfully() throws AutomationException {
+
         Response response = adminService.createLocation(locationData)
                 .getResponse();
 
@@ -56,6 +61,7 @@ public class CreateLocationTest {
             description = "Verify that normal user cannot create a location",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCannotCreateLocation() throws AutomationException {
         Response response = userService.createLocation(locationData)
                 .getResponse();
@@ -67,6 +73,7 @@ public class CreateLocationTest {
             description = "Verify that guest cannot create a location",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyGuestCannotCreateLocation() throws AutomationException {
         Response response = guestService.createLocation(locationData)
                 .getResponse();

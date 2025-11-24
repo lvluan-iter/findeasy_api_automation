@@ -1,22 +1,25 @@
 package tests.location;
 
-import core.api.AssertApiResponse;
-import core.constants.ErrorMessages;
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
-import core.utils.JsonUtils;
+import api.AssertApiResponse;
+import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.DataType;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import models.Location;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.LocationService;
+import utils.JsonUtils;
 
-@Listeners(TestListener.class)
+@Epic("Location Management")
+@Feature("Delete Location")
 public class DeleteLocationTest {
 
     private Location locationData;
@@ -42,6 +45,7 @@ public class DeleteLocationTest {
             description = "Verify admin can delete a location successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanDeleteLocationSuccessfully() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
@@ -61,6 +65,7 @@ public class DeleteLocationTest {
             description = "Verify normal user cannot delete location",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCannotDeleteLocation() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
@@ -77,6 +82,7 @@ public class DeleteLocationTest {
             description = "Verify guest cannot delete location",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyGuestCannotDeleteLocation() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();
@@ -93,6 +99,7 @@ public class DeleteLocationTest {
             description = "Verify admin deleting same location twice returns not found",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyDeleteLocationTwice() throws AutomationException {
         Response createRes = adminService.createLocation(locationData)
                 .getResponse();

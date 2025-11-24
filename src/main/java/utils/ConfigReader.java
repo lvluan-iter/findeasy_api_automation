@@ -1,7 +1,7 @@
-package core.utils;
+package utils;
 
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
+import constants.PathConstants;
+import exceptions.AutomationException;
 
 import java.io.FileInputStream;
 import java.io.IOException;

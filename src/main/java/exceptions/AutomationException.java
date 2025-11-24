@@ -1,4 +1,4 @@
-package core.exceptions;
+package exceptions;
 
 public class AutomationException extends Exception {
     public AutomationException(String message) {

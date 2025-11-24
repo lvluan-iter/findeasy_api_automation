@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        SLACK_WEBHOOK = credentials('slack-webhook')
-    }
-
     stages {
 
         stage('Checkout') {
@@ -21,16 +17,11 @@ pipeline {
             }
         }
 
-        stage('Publish Extent Report') {
+        stage('Allure Report') {
             steps {
-                publishHTML(target: [
-                    reportDir: 'report',
-                    reportFiles: 'extent-report.html',
-                    reportName: 'Extent Report',
-                    allowMissing: false,
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    includes: 'spark/*' 
+                allure([
+                    includeProperties: true,
+                    results          : [[path: 'target/allure-results']]
                 ])
             }
         }
@@ -38,38 +29,29 @@ pipeline {
 
     post {
         always {
-            script {
-                archiveArtifacts artifacts: 'report/extent-report.html', fingerprint: true
-                def testResult = junit 'target/surefire-reports/*.xml'
+            def testResult = junit 'target/surefire-reports/*.xml'
 
-                def total   = testResult.totalCount
-                def failed  = testResult.failCount
-                def skipped = testResult.skipCount
-                def passed  = total - failed - skipped
+            def total   = testResult.totalCount
+            def failed  = testResult.failCount
+            def skipped = testResult.skipCount
+            def passed  = total - failed - skipped
 
-                def extentLink = "${env.BUILD_URL}artifact/report/extent-report.html"
+            def allureLink = "${env.BUILD_URL}allure"
 
-                def message = """
-                              *${suite}*
-                              *Status:* ${currentBuild.currentResult}
-                              *Passed:* ${passed}
-                              *Failed:* ${failed}
-                              *Skipped:* ${skipped}
-                              *Total:* ${total}
-                              *Report:* ${extentLink}
-                              """
-
-                httpRequest(
-                    httpMode: 'POST',
-                    url: SLACK_WEBHOOK,
-                    contentType: 'APPLICATION_JSON',
-                    requestBody: """
-                    {
-                        "text": ${groovy.json.JsonOutput.toJson(message)}
-                    }
-                    """
-                )
-            }
+            emailext(
+                subject: "FindEasy API Automation - ${currentBuild.currentResult}",
+                body: """
+                    <h2>${suite}</h2>
+                    <p><b>Status:</b> ${currentBuild.currentResult}</p>
+                    <p><b>Total:</b> ${total}</p>
+                    <p><b>Passed:</b> ${passed}</p>
+                    <p><b>Failed:</b> ${failed}</p>
+                    <p><b>Skipped:</b> ${skipped}</p>
+                    <p><b>Report:</b> <a href="${allureLink}">${allureLink}</a></p>
+                """,
+                mimeType: 'text/html',
+                to: "lvluanpy2003@gmail.com"
+            )
         }
     }
 }

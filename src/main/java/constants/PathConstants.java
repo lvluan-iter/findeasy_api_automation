@@ -1,4 +1,4 @@
-package core.constants;
+package constants;
 
 public final class PathConstants {
     public static final String CONFIG_PROPERTIES_PATH = "src/main/resources/config.properties";

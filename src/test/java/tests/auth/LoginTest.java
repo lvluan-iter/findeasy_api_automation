@@ -1,20 +1,23 @@
 package tests.auth;
 
-import core.api.AssertApiResponse;
-import core.constants.ErrorMessages;
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
-import core.utils.JsonUtils;
+import api.AssertApiResponse;
+import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import models.LoginRequest;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.AuthService;
+import utils.JsonUtils;
 
-@Listeners(TestListener.class)
+@Epic("Authentication")
+@Feature("Login")
 public class LoginTest {
 
     private LoginRequest adminData;
@@ -42,6 +45,7 @@ public class LoginTest {
             description = "Verify admin can login successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = authService
                 .login(adminData)
@@ -54,6 +58,7 @@ public class LoginTest {
             description = "Verify user can login successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyUserCanLoginSuccessfully() throws AutomationException {
         Response loginResponse = authService
                 .login(userData)
@@ -66,6 +71,7 @@ public class LoginTest {
             description = "Verify admin cannot login with invalid username or password",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyAdminCannotLoginWithInvalidUsernameOrPassword() throws AutomationException {
         LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), userData.getUsername());
 
@@ -80,6 +86,7 @@ public class LoginTest {
             description = "Verify admin cannot login with null username or password",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyAdminCannotLoginWithNullUsernameOrPassword() throws AutomationException {
         LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), null);
 
