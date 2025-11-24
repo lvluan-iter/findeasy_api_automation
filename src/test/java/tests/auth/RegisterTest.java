@@ -1,22 +1,25 @@
 package tests.auth;
 
-import core.api.AssertApiResponse;
-import core.constants.ErrorMessages;
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
-import core.utils.JsonUtils;
+import api.AssertApiResponse;
+import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import models.RegisterRequest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.AuthService;
 import services.UserService;
+import utils.JsonUtils;
 
-@Listeners(TestListener.class)
+@Epic("Authentication")
+@Feature("Register")
 public class RegisterTest {
 
     private RegisterRequest registerData;
@@ -55,19 +58,22 @@ public class RegisterTest {
             description = "Verify user can register successfully with all fields",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyUserCanRegisterSuccessfullyWithRequiredData() throws AutomationException {
 
         Response registerResponse = authService.register(registerData)
                 .getResponse();
 
         AssertApiResponse.createSuccess(registerResponse);
-        createdUserId = registerResponse.jsonPath().getLong("result.id");
+        createdUserId = registerResponse.jsonPath()
+                .getLong("result.id");
     }
 
     @Test(
             description = "Verify user can register successfully with only required fields",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyUserCanRegisterSuccessfullyWithRequiredField() throws AutomationException {
 
         RegisterRequest payload = new RegisterRequest(
@@ -84,13 +90,15 @@ public class RegisterTest {
                 .getResponse();
 
         AssertApiResponse.createSuccess(registerResponse);
-        createdUserId = registerResponse.jsonPath().getLong("result.id");
+        createdUserId = registerResponse.jsonPath()
+                .getLong("result.id");
     }
 
     @Test(
-            description = "Verify user cannot register with existing username fields",
+            description = "Verify user cannot register with existing username field",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCanRegisterWithExistingUsernameField() throws AutomationException {
 
         RegisterRequest payload = new RegisterRequest(
@@ -110,9 +118,10 @@ public class RegisterTest {
     }
 
     @Test(
-            description = "Verify user cannot register with existing email fields",
+            description = "Verify user cannot register with existing email field",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCanRegisterWithExistingEmailField() throws AutomationException {
 
         RegisterRequest payload = new RegisterRequest(
@@ -132,9 +141,10 @@ public class RegisterTest {
     }
 
     @Test(
-            description = "Verify user cannot register with invalid password fields",
+            description = "Verify user cannot register with invalid password field",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCanRegisterWithInvalidPasswordField() throws AutomationException {
 
         RegisterRequest payload = new RegisterRequest(

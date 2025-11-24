@@ -1,16 +1,19 @@
 package tests.user;
 
-import core.api.AssertApiResponse;
-import core.exceptions.AutomationException;
+import api.AssertApiResponse;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.UserService;
 
-@Listeners(TestListener.class)
+@Epic("User Management")
+@Feature("Get All Users")
 public class GetAllUsersTest {
 
     private UserService userServiceForAdmin;
@@ -26,6 +29,7 @@ public class GetAllUsersTest {
             description = "Verify admin can get user list successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanGetUserList() throws AutomationException {
         Response response = userServiceForAdmin
                 .getAllUsers()
@@ -38,6 +42,7 @@ public class GetAllUsersTest {
             description = "Verify user can also get user list successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCanGetUserList() throws AutomationException {
         Response response = userService
                 .getAllUsers()

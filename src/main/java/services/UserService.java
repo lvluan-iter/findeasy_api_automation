@@ -1,9 +1,9 @@
 package services;
 
-import core.api.ApiClient;
-import core.exceptions.AutomationException;
-import endpoints.UserEndpoints;
+import api.ApiClient;
+import api.Endpoints;
 import enums.UserRole;
+import exceptions.AutomationException;
 import io.restassured.response.Response;
 
 public class UserService {
@@ -21,7 +21,7 @@ public class UserService {
     public UserService getAllUsers() throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)
-                .path(UserEndpoints.USER_ENDPOINT)
+                .path(Endpoints.USER_ENDPOINT)
                 .get()
                 .response();
         return this;
@@ -30,7 +30,7 @@ public class UserService {
     public UserService getUserByUsername(String username) throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)
-                .path(UserEndpoints.GET_USER_BY_USERNAME)
+                .path(Endpoints.GET_USER_BY_USERNAME)
                 .pathParam("name", username)
                 .get()
                 .response();
@@ -40,7 +40,7 @@ public class UserService {
     public UserService deleteUser(Long userId) throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)
-                .path(UserEndpoints.DELETE_USER)
+                .path(Endpoints.DELETE_USER)
                 .pathParam("id", userId.toString())
                 .delete()
                 .response();
@@ -50,7 +50,7 @@ public class UserService {
     public UserService changePassword(Long userId, Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
                 .auth(role)
-                .path(UserEndpoints.CHANGE_PASSWORD)
+                .path(Endpoints.CHANGE_PASSWORD)
                 .pathParam("id", userId.toString())
                 .body(payload)
                 .put()

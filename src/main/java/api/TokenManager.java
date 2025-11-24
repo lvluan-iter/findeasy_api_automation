@@ -1,14 +1,13 @@
-package core.api;
+package api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
-import core.utils.JsonUtils;
-import endpoints.AuthEndpoints;
+import constants.PathConstants;
 import enums.UserRole;
+import exceptions.AutomationException;
 import models.ApiResponse;
 import models.JwtAuthenticate;
 import models.LoginRequest;
+import utils.JsonUtils;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class TokenManager {
         LoginRequest creds = getLoginRequestByRole(role);
 
         ApiResponse<JwtAuthenticate> response = ApiClient.init()
-                .path(AuthEndpoints.LOGIN)
+                .path(Endpoints.LOGIN)
                 .body(creds)
                 .post()
                 .toPojo(new TypeReference<>() {

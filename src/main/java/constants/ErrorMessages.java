@@ -1,4 +1,4 @@
-package core.constants;
+package constants;
 
 public final class ErrorMessages {
     public static final String BAD_CREDENTIALS = "Bad credentials";

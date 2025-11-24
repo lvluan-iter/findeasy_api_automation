@@ -1,16 +1,19 @@
 package tests.location;
 
-import core.api.AssertApiResponse;
-import core.exceptions.AutomationException;
+import api.AssertApiResponse;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.LocationService;
 
-@Listeners(TestListener.class)
+@Epic("Location Management")
+@Feature("Get All Locations")
 public class GetAllLocationsTest {
 
     private LocationService locationServiceForAdmin;
@@ -28,6 +31,7 @@ public class GetAllLocationsTest {
             description = "Verify admin can get location list successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanGetLocationListSuccessfully() throws AutomationException {
         Response response = locationServiceForAdmin
                 .getAllLocations()
@@ -40,6 +44,7 @@ public class GetAllLocationsTest {
             description = "Verify user can get location list successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyUserCanGetLocationListSuccessfully() throws AutomationException {
         Response response = locationServiceForUser
                 .getAllLocations()
@@ -52,6 +57,7 @@ public class GetAllLocationsTest {
             description = "Verify guest can get location list successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyGuestCanGetLocationList() throws AutomationException {
         Response response = locationServiceForGuest
                 .getAllLocations()

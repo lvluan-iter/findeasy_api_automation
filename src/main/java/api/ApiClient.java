@@ -1,12 +1,12 @@
-package core.api;
+package api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import core.constants.CommonConstants;
-import core.exceptions.AutomationException;
-import core.utils.ConfigReader;
+import constants.CommonConstants;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
@@ -16,6 +16,7 @@ import io.restassured.http.Cookie;
 import io.restassured.http.Cookies;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import utils.EnvReader;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,26 +25,25 @@ import static io.restassured.RestAssured.given;
 
 public class ApiClient {
 
-    private RequestSpecBuilder requestSpecBuilder;
-    private Response apiResponse;
     private static final ObjectMapper mapper = new ObjectMapper()
             .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-
-    public static ApiClient init() throws AutomationException {
-        return new ApiClient();
-    }
+    private RequestSpecBuilder requestSpecBuilder;
+    private Response apiResponse;
 
     private ApiClient() throws AutomationException {
         initSpec();
         initTimeout();
     }
 
+    public static ApiClient init() throws AutomationException {
+        return new ApiClient();
+    }
+
     private void initSpec() throws AutomationException {
         EncoderConfig encoderConfig = new EncoderConfig();
         requestSpecBuilder = new RequestSpecBuilder();
 
-        requestSpecBuilder.setBaseUri(ConfigReader.init()
-                .getProperty("baseUrl"));
+        requestSpecBuilder.setBaseUri(EnvReader.getBaseUrl());
         requestSpecBuilder.setContentType(ContentType.JSON);
 
         requestSpecBuilder.setConfig(
@@ -120,7 +120,7 @@ public class ApiClient {
         RequestSpecification requestSpecification = requestSpecBuilder.build();
 
         apiResponse = given()
-                .filter(new ApiResponseFilter())
+                .filter(new AllureRestAssured())
                 .spec(requestSpecification)
                 .when()
                 .request(method)

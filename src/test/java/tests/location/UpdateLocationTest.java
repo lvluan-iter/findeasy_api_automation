@@ -1,23 +1,26 @@
 package tests.location;
 
-import core.api.AssertApiResponse;
-import core.constants.ErrorMessages;
-import core.constants.PathConstants;
-import core.exceptions.AutomationException;
-import core.utils.JsonUtils;
+import api.AssertApiResponse;
+import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.DataType;
 import enums.UserRole;
+import exceptions.AutomationException;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
-import listeners.TestListener;
 import models.Location;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import services.LocationService;
+import utils.JsonUtils;
 
-@Listeners(TestListener.class)
+@Epic("Location Management")
+@Feature("Update Location")
 public class UpdateLocationTest {
 
     private Location locationData;
@@ -43,6 +46,7 @@ public class UpdateLocationTest {
             description = "Verify admin can update a location successfully",
             groups = {"smoke", "regression"}
     )
+    @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanUpdateLocationSuccessfully() throws AutomationException {
         Location payload = Location.builder()
                 .name(locationData.getName() + "Test")
@@ -55,17 +59,20 @@ public class UpdateLocationTest {
 
         AssertApiResponse.success(response);
         Assert.assertEquals(
-                response.jsonPath().getString("result.name"),
+                response.jsonPath()
+                        .getString("result.name"),
                 payload.getName()
         );
 
-        updatedLocationId = response.jsonPath().getLong("result.id");
+        updatedLocationId = response.jsonPath()
+                .getLong("result.id");
     }
 
     @Test(
             description = "Verify normal user cannot update location",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCannotUpdateLocation() throws AutomationException {
         Location payload = Location.builder()
                 .name(locationData.getName() + "Test")
@@ -83,6 +90,7 @@ public class UpdateLocationTest {
             description = "Verify guest cannot update location",
             groups = {"regression"}
     )
+    @Severity(SeverityLevel.CRITICAL)
     public void verifyGuestCannotUpdateLocation() throws AutomationException {
         Location payload = Location.builder()
                 .name(locationData.getName() + "Test")

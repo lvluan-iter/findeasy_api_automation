@@ -1,8 +1,8 @@
 package services;
 
-import core.api.ApiClient;
-import core.exceptions.AutomationException;
-import endpoints.AuthEndpoints;
+import api.ApiClient;
+import api.Endpoints;
+import exceptions.AutomationException;
 import io.restassured.response.Response;
 
 public class AuthService {
@@ -18,7 +18,7 @@ public class AuthService {
 
     public AuthService login(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(AuthEndpoints.LOGIN)
+                .path(Endpoints.LOGIN)
                 .body(payload)
                 .post()
                 .response();
@@ -27,7 +27,7 @@ public class AuthService {
 
     public AuthService register(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(AuthEndpoints.REGISTER)
+                .path(Endpoints.REGISTER)
                 .body(payload)
                 .post()
                 .response();
@@ -36,7 +36,7 @@ public class AuthService {
 
     public AuthService forgotPassword(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()
-                .path(AuthEndpoints.FORGOT_PASSWORD)
+                .path(Endpoints.FORGOT_PASSWORD)
                 .body(payload)
                 .post()
                 .response();
