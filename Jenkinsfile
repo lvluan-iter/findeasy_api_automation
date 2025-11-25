@@ -40,18 +40,20 @@ pipeline {
 
                 def allureLink = "${env.BUILD_URL}allure"
 
+                def emailBody = readFile 'src/test/resources/email-template.html'
+
+                emailBody = emailBody
+                    .replace('${STATUS}', currentBuild.currentResult)
+                    .replace('${TOTAL}', total.toString())
+                    .replace('${PASSED}', passed.toString())
+                    .replace('${FAILED}', failed.toString())
+                    .replace('${SKIPPED}', skipped.toString())
+                    .replace('${REPORT}', allureLink)
+
                 emailext(
-                    subject: "FindEasy API Automation - ${currentBuild.currentResult}",
-                    body: """
-                        <h2>${suite}</h2>
-                        <p><b>Status:</b> ${currentBuild.currentResult}</p>
-                        <p><b>Total:</b> ${total}</p>
-                        <p><b>Passed:</b> ${passed}</p>
-                        <p><b>Failed:</b> ${failed}</p>
-                        <p><b>Skipped:</b> ${skipped}</p>
-                        <p><b>Report:</b> <a href="${allureLink}">${allureLink}</a></p>
-                    """,
-                    mimeType: 'text/html',
+                    subject: "[FindEasy API] ${suite} – ${currentBuild.currentResult}",
+                    body: emailBody,
+                    mimeType: "text/html",
                     to: "lvluanpy2003@gmail.com"
                 )
             }

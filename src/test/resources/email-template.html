@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:#2b2b2b; padding:20px;">
+
+<div style="border:1px solid #dedede; border-radius:6px; padding:20px;">
+
+    <h2 style="margin:0 0 4px 0; font-weight:600;">Jenkins Notification</h2>
+    <div style="font-size:13px; color:#777; margin-bottom:18px;">
+        Build #${BUILD_NUMBER}
+    </div>
+
+    <table style="width:100%; font-size:14px; border-collapse:collapse;">
+        <tr>
+            <td style="font-weight:500; padding:4px 0;">Status</td>
+            <td>${STATUS}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:500; padding:4px 0;">Total</td>
+            <td>${TOTAL}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:500; padding:4px 0;">Passed</td>
+            <td>${PASSED}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:500; padding:4px 0;">Failed</td>
+            <td>${FAILED}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:500; padding:4px 0;">Skipped</td>
+            <td>${SKIPPED}</td>
+        </tr>
+    </table>
+
+    <div style="margin-top:18px;">
+        <a href="${REPORT}"
+           style="padding:8px 16px;
+                  border:1px solid #bbbbbb;
+                  border-radius:4px;
+                  text-decoration:none;
+                  font-size:14px;">
+            View Report
+        </a>
+    </div>
+
+</div>
+
+<p style="font-size:12px;color:#999;margin-top:12px;">
+    This is an automated email notification.
+</p>
+
+</body>
+</html>
