@@ -3,97 +3,128 @@ package tests.auth;
 import api.AssertApiResponse;
 import constants.ErrorMessages;
 import constants.PathConstants;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.LoginRequest;
+import models.User;
+import org.testng.ITest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import services.AuthService;
+import utils.DataGenerateUtils;
 import utils.JsonUtils;
 
 @Epic("Authentication")
 @Feature("Login")
-public class LoginTest {
+public class LoginTest implements ITest {
 
-    private LoginRequest adminData;
-    private LoginRequest userData;
+    private User adminData;
+    private User userData;
     private AuthService authService;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        adminData = JsonUtils.readJson(
+        adminData = JsonUtils.fromFileByKey(
                 PathConstants.ACCOUNT_JSON,
-                LoginRequest.class,
-                UserRole.ADMIN.getRoleName()
+                UserRole.ADMIN.getRoleName(),
+                User.class
         );
 
-        userData = JsonUtils.readJson(
+        userData = JsonUtils.fromFileByKey(
                 PathConstants.ACCOUNT_JSON,
-                LoginRequest.class,
-                UserRole.USER.getRoleName()
+                UserRole.USER.getRoleName(),
+                User.class
         );
 
         authService = AuthService.init();
     }
 
-    @Test(
-            description = "Verify admin can login successfully",
-            groups = {"smoke", "regression"}
-    )
-    @Severity(SeverityLevel.BLOCKER)
-    public void verifyAdminCanLoginSuccessfully() throws AutomationException {
-        Response loginResponse = authService
-                .login(adminData)
-                .getResponse();
-
-        AssertApiResponse.success(loginResponse);
+    @DataProvider(name = "loginSuccessData")
+    public Object[][] loginSuccessData() {
+        return new Object[][]{
+                {"Verify admin can login successfully", adminData},
+                {"Verify user can login successfully", userData}
+        };
     }
 
     @Test(
-            description = "Verify user can login successfully",
-            groups = {"smoke", "regression"}
+            dataProvider = "loginSuccessData",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.BLOCKER)
-    public void verifyUserCanLoginSuccessfully() throws AutomationException {
-        Response loginResponse = authService
-                .login(userData)
+    public void verifyLoginSuccess(String description, User user) {
+        this.testName = description;
+
+        LoginRequest payload = LoginRequest.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .build();
+
+        Response response = authService
+                .login(payload)
                 .getResponse();
 
-        AssertApiResponse.success(loginResponse);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded();
+    }
+
+    @DataProvider(name = "loginFailData")
+    public Object[][] loginFailData() {
+        return new Object[][]{
+                {
+                        "Verify admin cannot login with wrong password",
+                        LoginRequest.builder()
+                                .username(adminData.getUsername())
+                                .password(DataGenerateUtils.password())
+                                .build()
+                },
+                {
+                        "Verify user cannot login with wrong password",
+                        LoginRequest.builder()
+                                .username(userData.getUsername())
+                                .password(DataGenerateUtils.password())
+                                .build()
+                },
+                {
+                        "Verify that cannot login with non exist user",
+                        LoginRequest.builder()
+                                .username(DataGenerateUtils.randomString(5))
+                                .password(DataGenerateUtils.password())
+                                .build()
+                }
+        };
     }
 
     @Test(
-            description = "Verify admin cannot login with invalid username or password",
+            dataProvider = "loginFailData",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyAdminCannotLoginWithInvalidUsernameOrPassword() throws AutomationException {
-        LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), userData.getUsername());
+    public void verifyLoginFail(String description,
+                                LoginRequest payload) {
 
-        Response loginResponse = authService
-                .login(invalidPayload)
+        this.testName = description;
+
+        Response response = authService
+                .login(payload)
                 .getResponse();
 
-        AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.BAD_REQUEST)
+                .failed()
+                .errorContains(ErrorMessages.BAD_CREDENTIALS);
     }
 
-    @Test(
-            description = "Verify admin cannot login with null username or password",
-            groups = {"regression"}
-    )
-    @Severity(SeverityLevel.CRITICAL)
-    public void verifyAdminCannotLoginWithNullUsernameOrPassword() throws AutomationException {
-        LoginRequest invalidPayload = new LoginRequest(adminData.getUsername(), null);
-
-        Response loginResponse = authService
-                .login(invalidPayload)
-                .getResponse();
-
-        AssertApiResponse.badRequest(loginResponse, ErrorMessages.BAD_CREDENTIALS);
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }
