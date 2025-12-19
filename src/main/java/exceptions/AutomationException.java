@@ -1,11 +1,12 @@
 package exceptions;
 
-public class AutomationException extends Exception {
+public class AutomationException extends RuntimeException {
+
     public AutomationException(String message) {
         super(message);
     }
 
-    public AutomationException(Exception e) {
-        super(e);
+    public AutomationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

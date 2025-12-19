@@ -14,14 +14,5 @@
     "password": "Luan@0907",
     "currentPassword": "Luan@0907",
     "newPassword": "Luan@2003"
-  },
-  "guest": {
-    "username": "luanle",
-    "email": "luan.user@example.com",
-    "password": "Luan@0907",
-    "fullname": "Lê Văn Luân",
-    "phoneNumber": "0907000456",
-    "gender": "MALE",
-    "birthdate": "1999-09-07"
   }
 }

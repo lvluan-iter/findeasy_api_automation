@@ -1,84 +1,88 @@
 package api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import enums.HttpStatus;
 import io.restassured.response.Response;
-import org.testng.Assert;
+import models.ApiResponse;
+import utils.JsonUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 public class AssertApiResponse {
 
-    private static void checkStatus(Response response, int expected) {
-        Assert.assertEquals(
-                expected,
-                response.getStatusCode(),
-                "Expected status " + expected + " but got " + response.getStatusCode()
+    private final int statusCode;
+    private final ApiResponse<Object> body;
+
+    private AssertApiResponse(Response response) {
+        this.statusCode = response.getStatusCode();
+        this.body = JsonUtils.fromResponse(
+                response,
+                new TypeReference<ApiResponse<Object>>() {
+                }
         );
     }
 
-    private static void checkSucceeded(Response response, boolean expected) {
-        boolean actual = response.jsonPath()
-                .getBoolean("succeeded");
-        Assert.assertEquals(
-                expected,
-                actual,
-                "Expected succeeded to be " + expected + " but got " + actual
-        );
+    public static AssertApiResponse assertThat(Response response) {
+        return new AssertApiResponse(response);
     }
 
-    private static void checkErrors(Response response,
-                                    String expectedErrorMessage) {
-
-        if (expectedErrorMessage == null) {
-            return;
+    public AssertApiResponse status(HttpStatus status) {
+        if (statusCode != status.getCode()) {
+            throw new AssertionError(
+                    "Expected status " + status.getCode() + " but got " + statusCode
+            );
         }
-        String actualMsg = response.jsonPath()
-                .getString("errors[0]");
-        Assert.assertEquals(expectedErrorMessage, actualMsg,
-                "Expected error message " + expectedErrorMessage +
-                        " but got " + actualMsg);
+        return this;
     }
 
-    private static void checkResponse(Response response,
-                                      int expectedStatus,
-                                      boolean expectedSucceeded,
-                                      String expectedErrorMessage) {
-
-        checkStatus(response, expectedStatus);
-        checkSucceeded(response, expectedSucceeded);
-        checkErrors(response, expectedErrorMessage);
+    public AssertApiResponse succeeded() {
+        if (!body.isSucceeded()) {
+            throw new AssertionError("Expected succeeded=true but got false");
+        }
+        return this;
     }
 
-    public static void success(Response response) {
-        checkResponse(response, 200, true, null);
+    public AssertApiResponse failed() {
+        if (body.isSucceeded()) {
+            throw new AssertionError("Expected succeeded=false but got true");
+        }
+        return this;
     }
 
-    public static void createSuccess(Response response) {
-        checkResponse(response, 201, true, null);
+    public AssertApiResponse errorContains(String expected) {
+        if (expected == null || expected.isBlank()) return this;
+
+        boolean found = errors().stream()
+                .anyMatch(e -> e != null && e.contains(expected));
+
+        if (!found) {
+            throw new AssertionError(
+                    "Expected error contains: " + expected + " but got: " + errors()
+            );
+        }
+        return this;
     }
 
-    public static void successNoContent(Response response) {
-        checkStatus(response, 204);
+    public List<String> errors() {
+        return body.getErrors() == null
+                ? Collections.emptyList()
+                : body.getErrors();
     }
 
-    public static void badRequest(Response response, String msg) {
-        checkResponse(response, 400, false, msg);
+    public <T> T resultAs(Class<T> clazz) {
+        Object result = body.getResult();
+        if (result == null) {
+            throw new AssertionError("Result is null, cannot convert to " + clazz.getSimpleName());
+        }
+        return JsonUtils.convert(result, clazz);
     }
 
-    public static void unauthorized(Response response, String msg) {
-        checkResponse(response, 401, false, msg);
-    }
-
-    public static void forbidden(Response response, String msg) {
-        checkResponse(response, 403, false, msg);
-    }
-
-    public static void notFound(Response response, String msg) {
-        checkResponse(response, 404, false, msg);
-    }
-
-    public static void conflict(Response response, String msg) {
-        checkResponse(response, 409, false, msg);
-    }
-
-    public static void internalServerError(Response response, String msg) {
-        checkResponse(response, 500, false, msg);
+    public <T> T resultAs(TypeReference<T> typeRef) {
+        Object result = body.getResult();
+        if (result == null) {
+            throw new AssertionError("Result is null, cannot convert result");
+        }
+        return JsonUtils.convert(result, typeRef);
     }
 }
