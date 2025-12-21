@@ -45,6 +45,10 @@ public final class ConfigReader {
         }
     }
 
+    public String getPropertyOrDefault(String propertyName, String defaultValue) {
+        return properties.getProperty(propertyName, defaultValue);
+    }
+
     public boolean getBooleanProperty(String propertyName) {
         return Boolean.parseBoolean(properties.getProperty(propertyName));
     }

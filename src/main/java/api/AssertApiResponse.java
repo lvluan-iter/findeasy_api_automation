@@ -10,12 +10,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class AssertApiResponse {
-
     private final int statusCode;
     private final ApiResponse<Object> body;
 
     private AssertApiResponse(Response response) {
         this.statusCode = response.getStatusCode();
+        if (statusCode == HttpStatus.NO_CONTENT.getCode()) {
+            this.body = null;
+            return;
+        }
         this.body = JsonUtils.fromResponse(
                 response,
                 new TypeReference<ApiResponse<Object>>() {

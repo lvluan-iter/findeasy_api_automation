@@ -2,115 +2,147 @@ package tests.user;
 
 import api.AssertApiResponse;
 import constants.ErrorMessages;
-import constants.PathConstants;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.ChangePasswordRequest;
+import models.RegisterRequest;
 import models.User;
+import org.testng.ITest;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import services.AuthService;
 import services.UserService;
-import utils.JsonUtils;
+import utils.DataGenerateUtils;
+import utils.Randomizer;
 
 @Epic("User Management")
 @Feature("Change Password")
-public class ChangePasswordTest {
+public class ChangePasswordTest implements ITest {
 
+    private AuthService authService;
     private UserService userService;
-    private User userData;
-    private Long userId;
+    private UserService adminUserService;
+
+    private RegisterRequest registerData;
+    private Long createdUserId;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
-    public void setUp() throws AutomationException {
-        userData = JsonUtils.readJson(
-                PathConstants.ACCOUNT_JSON,
-                User.class,
-                UserRole.USER.getRoleName()
-        );
+    public void setUp() {
+        authService = AuthService.init();
         userService = UserService.init(UserRole.USER);
+        adminUserService = UserService.init(UserRole.ADMIN);
     }
 
-    private Long getUserId() throws AutomationException {
-        if (userId == null) {
-            Response response = userService
-                    .getUserByUsername(userData.getUsername())
-                    .getResponse();
+    @BeforeMethod(alwaysRun = true)
+    public void prepareData() {
+        registerData = RegisterRequest.builder()
+                .username(DataGenerateUtils.username())
+                .email(DataGenerateUtils.email())
+                .password(DataGenerateUtils.password())
+                .fullname(DataGenerateUtils.fullName())
+                .gender(DataGenerateUtils.gender())
+                .birthdate(DataGenerateUtils.birthday())
+                .phoneNumber(DataGenerateUtils.phone())
+                .build();
 
-            userId = response.jsonPath()
-                    .getLong("result.id");
-        }
-        return userId;
+        Response registerResponse = authService
+                .register(registerData)
+                .getResponse();
+
+        createdUserId = AssertApiResponse.assertThat(registerResponse)
+                .status(HttpStatus.CREATED)
+                .succeeded()
+                .resultAs(User.class)
+                .getId();
     }
 
     @Test(
-            description = "Verify user can change password successfully",
-            groups = {"smoke", "regression"}
+            testName = "Verify user can change password successfully",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.BLOCKER)
-    public void verifyUserCanChangePasswordSuccessfully() throws AutomationException {
-        Long id = getUserId();
-
+    public void verifyUserCanChangePasswordSuccessfully() {
         ChangePasswordRequest payload = ChangePasswordRequest.builder()
-                .currentPassword(userData.getCurrentPassword())
-                .newPassword(userData.getNewPassword())
+                .currentPassword(registerData.getPassword())
+                .newPassword(DataGenerateUtils.password())
                 .build();
 
-        Response response = userService.changePassword(id, payload)
+        Response response = userService
+                .changePassword(createdUserId, payload)
                 .getResponse();
 
-        AssertApiResponse.success(response);
-
-        rollbackPassword(id);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded();
     }
 
     @Test(
-            description = "Verify user cannot change password if new password is same as current password",
+            testName = "Verify user cannot change password when new password is same as current password",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCannotChangePasswordWhenSamePassword() throws AutomationException {
-        Long id = getUserId();
-
+    public void verifyUserCannotChangePasswordWhenSamePassword() {
         ChangePasswordRequest payload = ChangePasswordRequest.builder()
-                .currentPassword(userData.getCurrentPassword())
-                .newPassword(userData.getCurrentPassword())
+                .currentPassword(registerData.getPassword())
+                .newPassword(registerData.getPassword())
                 .build();
 
-        Response response = userService.changePassword(id, payload)
+        Response response = userService
+                .changePassword(createdUserId, payload)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(response, ErrorMessages.NEW_PASSWORD_MUST_BE_DIFFERENT_CURRENT);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .failed()
+                .errorContains(ErrorMessages.NEW_PASSWORD_MUST_BE_DIFFERENT_CURRENT);
     }
 
     @Test(
-            description = "Verify user cannot change password if new password does not meet requirement",
+            testName = "Verify user cannot change password when new password does not meet requirement",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCannotChangePasswordNotMeetRequirement() throws AutomationException {
-        Long id = getUserId();
-
+    public void verifyUserCannotChangePasswordNotMeetRequirement() {
         ChangePasswordRequest payload = ChangePasswordRequest.builder()
-                .currentPassword(userData.getCurrentPassword())
-                .newPassword("abc")
+                .currentPassword(registerData.getPassword())
+                .newPassword(Randomizer.randomAlphabets(8))
                 .build();
 
-        Response response = userService.changePassword(id, payload)
+        Response response = userService
+                .changePassword(createdUserId, payload)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(response, ErrorMessages.INVALID_PASSWORD);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .failed()
+                .errorContains(ErrorMessages.INVALID_PASSWORD);
     }
 
-    private void rollbackPassword(Long id) throws AutomationException {
-        ChangePasswordRequest rollback = ChangePasswordRequest.builder()
-                .currentPassword(userData.getNewPassword())
-                .newPassword(userData.getCurrentPassword())
-                .build();
-        userService.changePassword(id, rollback);
+    @AfterMethod(alwaysRun = true)
+    public void cleanUp() {
+        if (createdUserId != null) {
+            Response response = adminUserService
+                    .deleteUser(createdUserId)
+                    .getResponse();
+
+            AssertApiResponse.assertThat(response)
+                    .status(HttpStatus.OK)
+                    .succeeded();
+
+            createdUserId = null;
+        }
+    }
+
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }

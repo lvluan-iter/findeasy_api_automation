@@ -2,7 +2,6 @@ package services;
 
 import api.ApiClient;
 import api.Endpoints;
-import enums.HttpStatus;
 import exceptions.AutomationException;
 import io.restassured.response.Response;
 
@@ -16,8 +15,6 @@ public class AuthService {
     public static AuthService init() {
         return new AuthService();
     }
-
-    public static isNegativeTest(HttpStatus status)
 
     public AuthService login(Object payload) throws AutomationException {
         apiResponse = ApiClient.init()

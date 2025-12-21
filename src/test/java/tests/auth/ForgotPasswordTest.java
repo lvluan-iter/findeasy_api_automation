@@ -3,6 +3,7 @@ package tests.auth;
 import api.AssertApiResponse;
 import constants.ErrorMessages;
 import constants.PathConstants;
+import enums.HttpStatus;
 import enums.UserRole;
 import exceptions.AutomationException;
 import io.qameta.allure.Epic;
@@ -15,54 +16,55 @@ import models.User;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import services.AuthService;
+import utils.DataGenerateUtils;
 import utils.JsonUtils;
-import utils.Randomizer;
 
 @Epic("Authentication")
 @Feature("Forgot Password")
 public class ForgotPasswordTest {
-
     private AuthService authService;
     private User userData;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        userData = JsonUtils.readJson(
+        userData = JsonUtils.fromFileByKey(
                 PathConstants.ACCOUNT_JSON,
-                User.class,
-                UserRole.USER.getRoleName()
+                UserRole.USER.getRoleName(),
+                User.class
         );
         authService = AuthService.init();
     }
 
     @Test(
-            description = "Verify user can get link to reset password successfully",
-            groups = {"smoke", "regression"}
+            testName = "Verify user can get link to reset password successfully",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.BLOCKER)
     public void verifyUserCanGetLinkToResetPasswordSuccessfully() throws AutomationException {
-
         ForgotPasswordRequest payload = new ForgotPasswordRequest(userData.getEmail());
 
         Response response = authService.forgotPassword(payload)
                 .getResponse();
 
-        AssertApiResponse.success(response);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded();
     }
 
     @Test(
-            description = "Verify user cannot get reset link when email does not exist",
+            testName = "Verify user cannot get reset link when email does not exist",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
     public void verifyUserCannotGetLinkWhenUserNotFound() throws AutomationException {
-
-        String email = Randomizer.randomEmail();
+        String email = DataGenerateUtils.email();
         ForgotPasswordRequest payload = new ForgotPasswordRequest(email);
 
         Response response = authService.forgotPassword(payload)
                 .getResponse();
 
-        AssertApiResponse.notFound(response, ErrorMessages.USER_NOT_FOUND_WITH_EMAIL + email);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.NOT_FOUND)
+                .errorContains(ErrorMessages.USER_NOT_FOUND_WITH_EMAIL + email);
     }
 }
