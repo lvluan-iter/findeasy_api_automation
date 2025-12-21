@@ -102,10 +102,14 @@ public class DataGenerateUtils {
                 .sentence(20);
     }
 
+    public static String word() {
+        return faker().lorem()
+                .word();
+    }
+
     public static String imageUrl() {
         return faker().internet()
                 .image();
     }
-
 }
 

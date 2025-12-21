@@ -14,4 +14,7 @@ public class Endpoints {
 
     //=============Location endpoints=============
     public static final String LOCATION_ENDPOINT = "/api/location";
+
+    //=============Amenity endpoints=============
+    public static final String AMENITY_ENDPOINT = "/api/amenities";
 }
