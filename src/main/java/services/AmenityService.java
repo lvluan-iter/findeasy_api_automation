@@ -20,6 +20,15 @@ public class AmenityService {
         return new AmenityService(role);
     }
 
+    public AmenityService getAllAmenities() {
+        response = ApiClient.init()
+                .path(Endpoints.AMENITY_ENDPOINT)
+                .auth(role)
+                .get()
+                .response();
+        return this;
+    }
+
     public AmenityService createAmenity(Amenity payload) {
         response = ApiClient.init()
                 .path(Endpoints.AMENITY_ENDPOINT)
