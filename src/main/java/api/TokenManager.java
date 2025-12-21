@@ -1,12 +1,13 @@
 package api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import constants.PathConstants;
+import enums.HttpStatus;
 import enums.UserRole;
 import exceptions.AutomationException;
-import models.ApiResponse;
+import io.restassured.response.Response;
 import models.JwtAuthenticate;
 import models.LoginRequest;
+import models.User;
 import utils.JsonUtils;
 
 import java.util.EnumMap;
@@ -32,26 +33,29 @@ public class TokenManager {
     }
 
     private static void refreshToken(UserRole role) throws AutomationException {
-        LoginRequest creds = getLoginRequestByRole(role);
+        LoginRequest creds = buildLoginRequestByRole(role);
 
-        ApiResponse<JwtAuthenticate> response = ApiClient.init()
+        Response response = ApiClient.init()
                 .path(Endpoints.LOGIN)
                 .body(creds)
                 .post()
-                .toPojo(new TypeReference<>() {
-                });
+                .response();
+        JwtAuthenticate jwt = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded()
+                .resultAs(JwtAuthenticate.class);
 
         tokens.put(role,
-                response.getResult()
-                        .getToken());
+                jwt.getToken());
         tokenExpiry.put(role,
-                response.getResult()
-                        .getExpire());
+                jwt.getExpire());
     }
 
-    private static LoginRequest getLoginRequestByRole(UserRole role) {
-        return JsonUtils.readJson(PathConstants.ACCOUNT_JSON,
-                LoginRequest.class,
-                role.getRoleName());
+    private static LoginRequest buildLoginRequestByRole(UserRole role) {
+        User userData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON,
+                role.getRoleName(),
+                User.class
+        );
+        return new LoginRequest(userData.getUsername(), userData.getPassword());
     }
 }

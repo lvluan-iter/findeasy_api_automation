@@ -1,53 +1,64 @@
 package tests.user;
 
 import api.AssertApiResponse;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
+import org.testng.ITest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import services.UserService;
 
 @Epic("User Management")
 @Feature("Get All Users")
-public class GetAllUsersTest {
+public class GetAllUsersTest implements ITest {
 
-    private UserService userServiceForAdmin;
+    private UserService adminService;
     private UserService userService;
+    private UserService guestService;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        userServiceForAdmin = UserService.init(UserRole.ADMIN);
+        adminService = UserService.init(UserRole.ADMIN);
         userService = UserService.init(UserRole.USER);
+        guestService = UserService.init(UserRole.GUEST);
+
+    }
+
+    @DataProvider(name = "getAllUsersServiceProvider")
+    public Object[][] serviceData() {
+        return new Object[][]{
+                {"Verify admin can get user list successfully", adminService},
+                {"Verify user can get user list successfully", userService},
+                {"Verify guest can get user list successfully", guestService}
+        };
     }
 
     @Test(
-            description = "Verify admin can get user list successfully",
-            groups = {"smoke", "regression"}
-    )
-    @Severity(SeverityLevel.BLOCKER)
-    public void verifyAdminCanGetUserList() throws AutomationException {
-        Response response = userServiceForAdmin
-                .getAllUsers()
-                .getResponse();
-
-        AssertApiResponse.success(response);
-    }
-
-    @Test(
-            description = "Verify user can also get user list successfully",
-            groups = {"smoke", "regression"}
+            dataProvider = "getAllUsersServiceProvider",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCanGetUserList() throws AutomationException {
-        Response response = userService
+    public void verifyGetUserListSuccessfully(String description, UserService service) {
+        this.testName = description;
+
+        Response response = service
                 .getAllUsers()
                 .getResponse();
 
-        AssertApiResponse.success(response);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded();
+    }
+
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }

@@ -2,46 +2,22 @@ package utils;
 
 import net.datafaker.Faker;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
-import java.util.UUID;
 
 public class DataGenerateUtils {
-    private static final SecureRandom secureRandom = new SecureRandom();
-    private static final String ALPHANUM =
-            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    private static Faker faker;
+    private static final ThreadLocal<Faker> FAKER =
+            ThreadLocal.withInitial(() ->
+                    new Faker(Locale.forLanguageTag(
+                            ConfigReader.init()
+                                    .getPropertyOrDefault("locale", "vi")
+                    ))
+            );
 
     private static Faker faker() {
-        if (faker == null) {
-            String locale = ConfigReader.getProperty("locale");
-            faker = new Faker(Locale.forLanguageTag(locale));
-        }
-        return faker;
-    }
-
-    public static String randomString(int length) {
-        StringBuilder sb = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            sb.append(ALPHANUM.charAt(secureRandom.nextInt(ALPHANUM.length())));
-        }
-        return sb.toString();
-    }
-
-    public static String randomUUID() {
-        return UUID.randomUUID()
-                .toString();
-    }
-
-    public static String randomHexToken(int byteLength) {
-        byte[] bytes = new byte[byteLength];
-        secureRandom.nextBytes(bytes);
-        return new BigInteger(1, bytes).toString(16);
-    }
-
-    public static int randomInt(int min, int max) {
-        return secureRandom.nextInt((max - min) + 1) + min;
+        return FAKER.get();
     }
 
     public static String fullName() {
@@ -49,9 +25,36 @@ public class DataGenerateUtils {
                 .fullName();
     }
 
-    public static String password() {
+    public static String gender() {
+        return Randomizer.random()
+                .nextBoolean() ? "MALE" : "FEMALE";
+    }
+
+    public static Date birthday() {
+        LocalDate end = LocalDate.now()
+                .minusYears(18);
+        LocalDate start = LocalDate.now()
+                .minusYears(60);
+
+        long daysBetween = ChronoUnit.DAYS.between(start, end);
+        LocalDate birthday = start.plusDays(Randomizer.random()
+                .nextInt(0, (int) daysBetween));
+        return Date.valueOf(birthday);
+    }
+
+    public static String username() {
         return faker().internet()
-                .password();
+                .username();
+    }
+
+    public static String password() {
+        return Randomizer.randomAlphabets(1)
+                .toUpperCase()
+                + Randomizer.randomAlphabets(1)
+                .toLowerCase()
+                + Randomizer.randomNumeric(1)
+                + Randomizer.randomSpecialCharacters(1)
+                + Randomizer.randomAlphaNumeric(6);
     }
 
     public static String email() {
@@ -93,5 +96,16 @@ public class DataGenerateUtils {
         return faker().programmingLanguage()
                 .name();
     }
+
+    public static String lorem() {
+        return faker().lorem()
+                .sentence(20);
+    }
+
+    public static String imageUrl() {
+        return faker().internet()
+                .image();
+    }
+
 }
 

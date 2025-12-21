@@ -1,8 +1,5 @@
 package api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import constants.CommonConstants;
 import enums.UserRole;
 import exceptions.AutomationException;
@@ -17,19 +14,13 @@ import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import utils.EnvReader;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 
 public class ApiClient {
-
-    private static final ObjectMapper mapper = new ObjectMapper()
-            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-
     private RequestSpecBuilder requestSpecBuilder;
     private Response apiResponse;
-    private int expectedStatus = 200;
 
     private ApiClient() throws AutomationException {
         initSpec();
@@ -117,11 +108,6 @@ public class ApiClient {
         return this;
     }
 
-    public ApiClient expectStatus(int status) {
-        this.expectedStatus = status;
-        return this;
-    }
-
     private ApiClient execute(String method) {
         RequestSpecification requestSpecification = requestSpecBuilder.build();
 
@@ -130,8 +116,6 @@ public class ApiClient {
                 .when()
                 .request(method)
                 .then()
-                .assertThat()
-                .statusCode(expectedStatus)
                 .extract()
                 .response();
 
@@ -160,13 +144,5 @@ public class ApiClient {
 
     public String asString() {
         return apiResponse.asString();
-    }
-
-    public <T> T toPojo(TypeReference<T> type) throws AutomationException {
-        try {
-            return mapper.readValue(asString(), type);
-        } catch (IOException e) {
-            throw new AutomationException(e);
-        }
     }
 }

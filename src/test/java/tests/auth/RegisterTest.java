@@ -3,163 +3,169 @@ package tests.auth;
 import api.AssertApiResponse;
 import constants.ErrorMessages;
 import constants.PathConstants;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.RegisterRequest;
+import models.User;
+import org.testng.ITest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import services.AuthService;
 import services.UserService;
+import utils.DataGenerateUtils;
 import utils.JsonUtils;
+import utils.Randomizer;
 
 @Epic("Authentication")
 @Feature("Register")
-public class RegisterTest {
+public class RegisterTest implements ITest {
 
-    private RegisterRequest registerData;
-    private RegisterRequest adminData;
     private AuthService authService;
-    private UserService userServiceForAdmin;
+    private UserService adminUserService;
+
+    private User existingUserData;
+    private RegisterRequest registerData;
     private Long createdUserId;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
-    public void init() {
-        registerData = JsonUtils.readJson(
+    public void setUp() {
+        existingUserData = JsonUtils.fromFileByKey(
                 PathConstants.ACCOUNT_JSON,
-                RegisterRequest.class,
-                UserRole.GUEST.getRoleName()
-        );
-
-        adminData = JsonUtils.readJson(
-                PathConstants.ACCOUNT_JSON,
-                RegisterRequest.class,
-                UserRole.ADMIN.getRoleName()
+                UserRole.ADMIN.getRoleName(),
+                User.class
         );
 
         authService = AuthService.init();
-        userServiceForAdmin = UserService.init(UserRole.ADMIN);
+        adminUserService = UserService.init(UserRole.ADMIN);
+    }
+
+    @BeforeMethod(alwaysRun = true)
+    public void prepareData() {
+        registerData = RegisterRequest.builder()
+                .username(DataGenerateUtils.username())
+                .email(DataGenerateUtils.email())
+                .password(DataGenerateUtils.password())
+                .fullname(DataGenerateUtils.fullName())
+                .gender(DataGenerateUtils.gender())
+                .birthdate(DataGenerateUtils.birthday())
+                .phoneNumber(DataGenerateUtils.phone())
+                .build();
+    }
+
+    @Test(
+            testName = "Verify user can register successfully with all fields",
+            groups = {"smoke"}
+    )
+    @Severity(SeverityLevel.BLOCKER)
+    public void verifyUserCanRegisterSuccessfullyWithAllFields() {
+        Response response = authService
+                .register(registerData)
+                .getResponse();
+
+        createdUserId = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.CREATED)
+                .succeeded()
+                .resultAs(User.class)
+                .getId();
+    }
+
+    @Test(
+            testName = "Verify user can register successfully with only required fields",
+            groups = {"smoke"}
+    )
+    @Severity(SeverityLevel.BLOCKER)
+    public void verifyUserCanRegisterSuccessfullyWithRequiredFields() {
+        registerData.setGender(null);
+        registerData.setBirthdate(null);
+
+        Response response = authService
+                .register(registerData)
+                .getResponse();
+
+        createdUserId = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.CREATED)
+                .succeeded()
+                .resultAs(User.class)
+                .getId();
+    }
+
+    @Test(
+            testName = "Verify user cannot register with existing username",
+            groups = {"regression"}
+    )
+    @Severity(SeverityLevel.CRITICAL)
+    public void verifyUserCannotRegisterWithExistingUsername() {
+        registerData.setUsername(existingUserData.getUsername());
+
+        Response response = authService
+                .register(registerData)
+                .getResponse();
+
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.CONFLICT)
+                .failed();
+    }
+
+    @Test(
+            testName = "Verify user cannot register with existing email",
+            groups = {"regression"}
+    )
+    @Severity(SeverityLevel.CRITICAL)
+    public void verifyUserCannotRegisterWithExistingEmail() {
+        registerData.setEmail(existingUserData.getEmail());
+
+        Response response = authService
+                .register(registerData)
+                .getResponse();
+
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.CONFLICT)
+                .failed();
+    }
+
+    @Test(
+            testName = "Verify user cannot register with invalid password",
+            groups = {"regression"}
+    )
+    @Severity(SeverityLevel.CRITICAL)
+    public void verifyUserCannotRegisterWithInvalidPassword() {
+        registerData.setPassword(Randomizer.randomAlphabets(8));
+
+        Response response = authService
+                .register(registerData)
+                .getResponse();
+
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .failed()
+                .errorContains(ErrorMessages.INVALID_PASSWORD);
     }
 
     @AfterMethod(alwaysRun = true)
-    public void cleanup() throws AutomationException {
+    public void cleanUp() {
         if (createdUserId != null) {
-            userServiceForAdmin.deleteUser(createdUserId);
+            Response response = adminUserService
+                    .deleteUser(createdUserId)
+                    .getResponse();
+
+            AssertApiResponse.assertThat(response)
+                    .status(HttpStatus.OK)
+                    .succeeded();
+
             createdUserId = null;
         }
     }
 
-    @Test(
-            description = "Verify user can register successfully with all fields",
-            groups = {"smoke", "regression"}
-    )
-    @Severity(SeverityLevel.BLOCKER)
-    public void verifyUserCanRegisterSuccessfullyWithRequiredData() throws AutomationException {
-
-        Response registerResponse = authService.register(registerData)
-                .getResponse();
-
-        AssertApiResponse.createSuccess(registerResponse);
-        createdUserId = registerResponse.jsonPath()
-                .getLong("result.id");
-    }
-
-    @Test(
-            description = "Verify user can register successfully with only required fields",
-            groups = {"smoke", "regression"}
-    )
-    @Severity(SeverityLevel.BLOCKER)
-    public void verifyUserCanRegisterSuccessfullyWithRequiredField() throws AutomationException {
-
-        RegisterRequest payload = new RegisterRequest(
-                registerData.getUsername(),
-                registerData.getEmail(),
-                registerData.getPassword(),
-                registerData.getFullname(),
-                registerData.getPhoneNumber(),
-                null,
-                null
-        );
-
-        Response registerResponse = authService.register(payload)
-                .getResponse();
-
-        AssertApiResponse.createSuccess(registerResponse);
-        createdUserId = registerResponse.jsonPath()
-                .getLong("result.id");
-    }
-
-    @Test(
-            description = "Verify user cannot register with existing username field",
-            groups = {"regression"}
-    )
-    @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCanRegisterWithExistingUsernameField() throws AutomationException {
-
-        RegisterRequest payload = new RegisterRequest(
-                adminData.getUsername(),
-                registerData.getEmail(),
-                registerData.getPassword(),
-                registerData.getFullname(),
-                registerData.getPhoneNumber(),
-                null,
-                null
-        );
-
-        Response registerResponse = authService.register(payload)
-                .getResponse();
-
-        AssertApiResponse.conflict(registerResponse, ErrorMessages.USERNAME_ALREADY_EXISTS);
-    }
-
-    @Test(
-            description = "Verify user cannot register with existing email field",
-            groups = {"regression"}
-    )
-    @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCanRegisterWithExistingEmailField() throws AutomationException {
-
-        RegisterRequest payload = new RegisterRequest(
-                registerData.getUsername(),
-                adminData.getEmail(),
-                registerData.getPassword(),
-                registerData.getFullname(),
-                registerData.getPhoneNumber(),
-                null,
-                null
-        );
-
-        Response registerResponse = authService.register(payload)
-                .getResponse();
-
-        AssertApiResponse.conflict(registerResponse, ErrorMessages.EMAIL_ALREADY_EXISTS);
-    }
-
-    @Test(
-            description = "Verify user cannot register with invalid password field",
-            groups = {"regression"}
-    )
-    @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCanRegisterWithInvalidPasswordField() throws AutomationException {
-
-        RegisterRequest payload = new RegisterRequest(
-                registerData.getUsername(),
-                registerData.getEmail(),
-                "abc",
-                registerData.getFullname(),
-                registerData.getPhoneNumber(),
-                null,
-                null
-        );
-
-        Response registerResponse = authService.register(payload)
-                .getResponse();
-
-        AssertApiResponse.internalServerError(registerResponse, ErrorMessages.INVALID_PASSWORD);
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }

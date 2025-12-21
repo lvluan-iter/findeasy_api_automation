@@ -2,93 +2,106 @@ package tests.location;
 
 import api.AssertApiResponse;
 import constants.ErrorMessages;
-import constants.PathConstants;
-import enums.DataType;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.Location;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.ITest;
+import org.testng.annotations.*;
 import services.LocationService;
-import utils.JsonUtils;
+import utils.DataGenerateUtils;
 
 @Epic("Location Management")
 @Feature("Create Location")
-public class CreateLocationTest {
+public class CreateLocationTest implements ITest {
 
     private Location locationData;
     private LocationService adminService;
     private LocationService userService;
     private LocationService guestService;
     private Long createdLocationId;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        locationData = JsonUtils.readJson(
-                PathConstants.LOCATION_JSON,
-                Location.class,
-                DataType.CREATED.getName()
-        );
-
         adminService = LocationService.init(UserRole.ADMIN);
         userService = LocationService.init(UserRole.USER);
         guestService = LocationService.init(UserRole.GUEST);
     }
 
-    @Test(
-            description = "Verify that admin can create a location successfully",
-            groups = {"smoke", "regression"}
-    )
-    @Severity(SeverityLevel.BLOCKER)
-    public void verifyAdminCanCreateLocationSuccessfully() throws AutomationException {
-
-        Response response = adminService.createLocation(locationData)
-                .getResponse();
-
-        AssertApiResponse.success(response);
-
-        createdLocationId = response.jsonPath()
-                .getLong("result.id");
+    @BeforeMethod(alwaysRun = true)
+    public void setUpData() {
+        locationData = Location.builder()
+                .name(DataGenerateUtils.city())
+                .description(DataGenerateUtils.lorem())
+                .url(DataGenerateUtils.imageUrl())
+                .build();
     }
 
     @Test(
-            description = "Verify that normal user cannot create a location",
-            groups = {"regression"}
+            testName = "Verify admin can create a location successfully",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCannotCreateLocation() throws AutomationException {
-        Response response = userService.createLocation(locationData)
+    public void verifyAdminCanCreateLocationSuccessfully() {
+        Response response = adminService
+                .createLocation(locationData)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
+        createdLocationId = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded()
+                .resultAs(Location.class)
+                .getId();
+    }
+
+    @DataProvider(name = "unauthorizedCreateLocationProvider")
+    public Object[][] unauthorizedData() {
+        return new Object[][]{
+                {"Verify user cannot create a location", userService},
+                {"Verify guest cannot create a location", guestService}
+        };
     }
 
     @Test(
-            description = "Verify that guest cannot create a location",
+            dataProvider = "unauthorizedCreateLocationProvider",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyGuestCannotCreateLocation() throws AutomationException {
-        Response response = guestService.createLocation(locationData)
+    public void verifyUnauthorizedUserCannotCreateLocation(String description,
+                                                           LocationService service) {
+        this.testName = description;
+
+        Response response = service
+                .createLocation(locationData)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .failed()
+                .errorContains(ErrorMessages.ACCESS_DENIED);
     }
 
     @AfterMethod(alwaysRun = true)
-    public void cleanUp() throws AutomationException {
+    public void cleanUp() {
         if (createdLocationId != null) {
-            Response response = adminService.deleteLocation(createdLocationId)
+            Response response = adminService
+                    .deleteLocation(createdLocationId)
                     .getResponse();
 
-            AssertApiResponse.successNoContent(response);
+            AssertApiResponse.assertThat(response)
+                    .status(HttpStatus.NO_CONTENT);
+
             createdLocationId = null;
         }
+    }
+
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }

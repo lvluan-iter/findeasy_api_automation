@@ -19,6 +19,7 @@ import org.testng.annotations.Test;
 import services.AuthService;
 import utils.DataGenerateUtils;
 import utils.JsonUtils;
+import utils.Randomizer;
 
 @Epic("Authentication")
 @Feature("Login")
@@ -60,6 +61,7 @@ public class LoginTest implements ITest {
     )
     @Severity(SeverityLevel.BLOCKER)
     public void verifyLoginSuccess(String description, User user) {
+
         this.testName = description;
 
         LoginRequest payload = LoginRequest.builder()
@@ -76,8 +78,8 @@ public class LoginTest implements ITest {
                 .succeeded();
     }
 
-    @DataProvider(name = "loginFailData")
-    public Object[][] loginFailData() {
+    @DataProvider(name = "loginWrongPasswordData")
+    public Object[][] loginWrongPasswordData() {
         return new Object[][]{
                 {
                         "Verify admin cannot login with wrong password",
@@ -92,25 +94,17 @@ public class LoginTest implements ITest {
                                 .username(userData.getUsername())
                                 .password(DataGenerateUtils.password())
                                 .build()
-                },
-                {
-                        "Verify that cannot login with non exist user",
-                        LoginRequest.builder()
-                                .username(DataGenerateUtils.randomString(5))
-                                .password(DataGenerateUtils.password())
-                                .build()
                 }
         };
     }
 
     @Test(
-            dataProvider = "loginFailData",
+            dataProvider = "loginWrongPasswordData",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyLoginFail(String description,
-                                LoginRequest payload) {
-
+    public void verifyLoginFailWithWrongPassword(String description,
+                                                 LoginRequest payload) {
         this.testName = description;
 
         Response response = authService
@@ -119,6 +113,24 @@ public class LoginTest implements ITest {
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.BAD_REQUEST)
+                .failed()
+                .errorContains(ErrorMessages.BAD_CREDENTIALS);
+    }
+
+    @Test(testName = "Verify cannot login with non-exist user", groups = {"regression"})
+    @Severity(SeverityLevel.CRITICAL)
+    public void verifyLoginFailWithNonExistUser() {
+        LoginRequest payload = LoginRequest.builder()
+                .username(Randomizer.randomAlphabets(8))
+                .password(DataGenerateUtils.password())
+                .build();
+
+        Response response = authService
+                .login(payload)
+                .getResponse();
+
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.NOT_FOUND)
                 .failed()
                 .errorContains(ErrorMessages.BAD_CREDENTIALS);
     }

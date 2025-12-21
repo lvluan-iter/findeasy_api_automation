@@ -2,127 +2,140 @@ package tests.location;
 
 import api.AssertApiResponse;
 import constants.ErrorMessages;
-import constants.PathConstants;
-import enums.DataType;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.Location;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.ITest;
+import org.testng.annotations.*;
 import services.LocationService;
-import utils.JsonUtils;
+import utils.DataGenerateUtils;
 
 @Epic("Location Management")
 @Feature("Delete Location")
-public class DeleteLocationTest {
+public class DeleteLocationTest implements ITest {
 
-    private Location locationData;
     private LocationService adminService;
     private LocationService userService;
     private LocationService guestService;
-    private Long locationId;
+
+    private Long createdLocationId;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        locationData = JsonUtils.readJson(
-                PathConstants.LOCATION_JSON,
-                Location.class,
-                DataType.CREATED.getName()
-        );
-
         adminService = LocationService.init(UserRole.ADMIN);
         userService = LocationService.init(UserRole.USER);
         guestService = LocationService.init(UserRole.GUEST);
     }
 
+    @BeforeMethod(alwaysRun = true)
+    public void createLocation() {
+        Location payload = Location.builder()
+                .name(DataGenerateUtils.city())
+                .description(DataGenerateUtils.lorem())
+                .url(DataGenerateUtils.imageUrl())
+                .build();
+
+        Response response = adminService
+                .createLocation(payload)
+                .getResponse();
+
+        createdLocationId = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded()
+                .resultAs(Location.class)
+                .getId();
+    }
+
     @Test(
-            description = "Verify admin can delete a location successfully",
-            groups = {"smoke", "regression"}
+            testName = "Verify admin can delete a location successfully",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.BLOCKER)
-    public void verifyAdminCanDeleteLocationSuccessfully() throws AutomationException {
-        Response createRes = adminService.createLocation(locationData)
-                .getResponse();
-        AssertApiResponse.success(createRes);
-
-        locationId = createRes.jsonPath()
-                .getLong("result.id");
-
-        Response deleteRes = adminService.deleteLocation(locationId)
+    public void verifyAdminCanDeleteLocationSuccessfully() {
+        Response response = adminService
+                .deleteLocation(createdLocationId)
                 .getResponse();
 
-        AssertApiResponse.successNoContent(deleteRes);
-        locationId = null;
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.NO_CONTENT);
+
+        createdLocationId = null;
+    }
+
+    @DataProvider(name = "unauthorizedDeleteProvider")
+    public Object[][] unauthorizedDeleteProvider() {
+        return new Object[][]{
+                {"Verify user cannot delete location", userService},
+                {"Verify guest cannot delete location", guestService}
+        };
     }
 
     @Test(
-            description = "Verify normal user cannot delete location",
+            dataProvider = "unauthorizedDeleteProvider",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCannotDeleteLocation() throws AutomationException {
-        Response createRes = adminService.createLocation(locationData)
-                .getResponse();
-        locationId = createRes.jsonPath()
-                .getLong("result.id");
+    public void verifyUnauthorizedUserCannotDeleteLocation(String description,
+                                                           LocationService service) {
+        this.testName = description;
 
-        Response res = userService.deleteLocation(locationId)
+        Response response = service
+                .deleteLocation(createdLocationId)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(res, ErrorMessages.ACCESS_DENIED);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .failed()
+                .errorContains(ErrorMessages.ACCESS_DENIED);
     }
 
     @Test(
-            description = "Verify guest cannot delete location",
+            testName = "Verify deleting same location twice returns not found",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyGuestCannotDeleteLocation() throws AutomationException {
-        Response createRes = adminService.createLocation(locationData)
-                .getResponse();
-        locationId = createRes.jsonPath()
-                .getLong("result.id");
-
-        Response res = guestService.deleteLocation(locationId)
+    public void verifyDeleteLocationTwice() {
+        Response firstDelete = adminService
+                .deleteLocation(createdLocationId)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(res, ErrorMessages.ACCESS_DENIED);
-    }
+        AssertApiResponse.assertThat(firstDelete)
+                .status(HttpStatus.NO_CONTENT);
 
-    @Test(
-            description = "Verify admin deleting same location twice returns not found",
-            groups = {"regression"}
-    )
-    @Severity(SeverityLevel.CRITICAL)
-    public void verifyDeleteLocationTwice() throws AutomationException {
-        Response createRes = adminService.createLocation(locationData)
+        Response secondDelete = adminService
+                .deleteLocation(createdLocationId)
                 .getResponse();
-        locationId = createRes.jsonPath()
-                .getLong("result.id");
 
-        Response firstDelete = adminService.deleteLocation(locationId)
-                .getResponse();
-        AssertApiResponse.successNoContent(firstDelete);
+        AssertApiResponse.assertThat(secondDelete)
+                .status(HttpStatus.NOT_FOUND)
+                .failed()
+                .errorContains(ErrorMessages.LOCATION_NOT_FOUND);
 
-        Response secondDelete = adminService.deleteLocation(locationId)
-                .getResponse();
-        AssertApiResponse.notFound(secondDelete, ErrorMessages.LOCATION_NOT_FOUND + locationId);
-        locationId = null;
+        createdLocationId = null;
     }
 
     @AfterMethod(alwaysRun = true)
-    public void cleanUp() throws AutomationException {
-        if (locationId != null) {
-            Response response = adminService.deleteLocation(locationId)
+    public void cleanUp() {
+        if (createdLocationId != null) {
+            Response response = adminService
+                    .deleteLocation(createdLocationId)
                     .getResponse();
-            AssertApiResponse.successNoContent(response);
-            locationId = null;
+
+            AssertApiResponse.assertThat(response)
+                    .status(HttpStatus.NO_CONTENT);
+
+            createdLocationId = null;
         }
+    }
+
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }

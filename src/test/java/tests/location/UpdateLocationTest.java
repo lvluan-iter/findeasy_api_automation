@@ -2,10 +2,8 @@ package tests.location;
 
 import api.AssertApiResponse;
 import constants.ErrorMessages;
-import constants.PathConstants;
-import enums.DataType;
+import enums.HttpStatus;
 import enums.UserRole;
-import exceptions.AutomationException;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -13,112 +11,123 @@ import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.Location;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.ITest;
+import org.testng.annotations.*;
 import services.LocationService;
-import utils.JsonUtils;
+import utils.DataGenerateUtils;
 
 @Epic("Location Management")
 @Feature("Update Location")
-public class UpdateLocationTest {
+public class UpdateLocationTest implements ITest {
 
-    private Location locationData;
     private LocationService adminService;
     private LocationService userService;
     private LocationService guestService;
-    private Long updatedLocationId;
+
+    private Location createdLocation;
+    private Long createdLocationId;
+    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        locationData = JsonUtils.readJson(
-                PathConstants.LOCATION_JSON,
-                Location.class,
-                DataType.TEST.getName()
-        );
-
         adminService = LocationService.init(UserRole.ADMIN);
         userService = LocationService.init(UserRole.USER);
         guestService = LocationService.init(UserRole.GUEST);
     }
 
+    @BeforeMethod(alwaysRun = true)
+    public void createLocation() {
+        Location payload = Location.builder()
+                .name(DataGenerateUtils.city())
+                .description(DataGenerateUtils.lorem())
+                .url(DataGenerateUtils.imageUrl())
+                .build();
+
+        Response response = adminService
+                .createLocation(payload)
+                .getResponse();
+
+        createdLocation = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded()
+                .resultAs(Location.class);
+        createdLocationId = createdLocation.getId();
+    }
+
     @Test(
-            description = "Verify admin can update a location successfully",
-            groups = {"smoke", "regression"}
+            testName = "Verify admin can update a location successfully",
+            groups = {"smoke"}
     )
     @Severity(SeverityLevel.BLOCKER)
-    public void verifyAdminCanUpdateLocationSuccessfully() throws AutomationException {
-        Location payload = Location.builder()
-                .name(locationData.getName() + "Test")
-                .description(locationData.getDescription())
-                .url(locationData.getUrl())
+    public void verifyAdminCanUpdateLocationSuccessfully() {
+        Location updatePayload = Location.builder()
+                .name(createdLocation.getName() + " Updated")
+                .description(createdLocation.getDescription() + " Updated")
+                .url(createdLocation.getUrl())
                 .build();
 
-        Response response = adminService.updateLocation(locationData.getId(), payload)
+        Response response = adminService
+                .updateLocation(createdLocationId, updatePayload)
                 .getResponse();
 
-        AssertApiResponse.success(response);
-        Assert.assertEquals(
-                response.jsonPath()
-                        .getString("result.name"),
-                payload.getName()
-        );
+        Location updatedLocation = AssertApiResponse.assertThat(response)
+                .status(HttpStatus.OK)
+                .succeeded()
+                .resultAs(Location.class);
 
-        updatedLocationId = response.jsonPath()
-                .getLong("result.id");
+        Assert.assertEquals(updatedLocation.getName(), updatePayload.getName());
+        Assert.assertEquals(updatedLocation.getDescription(), updatePayload.getDescription());
+    }
+
+    @DataProvider(name = "unauthorizedUpdateProvider")
+    public Object[][] unauthorizedUpdateProvider() {
+        return new Object[][]{
+                {"Verify user cannot update location", userService},
+                {"Verify guest cannot update location", guestService}
+        };
     }
 
     @Test(
-            description = "Verify normal user cannot update location",
+            dataProvider = "unauthorizedUpdateProvider",
             groups = {"regression"}
     )
     @Severity(SeverityLevel.CRITICAL)
-    public void verifyUserCannotUpdateLocation() throws AutomationException {
+    public void verifyUnauthorizedUserCannotUpdateLocation(String description,
+                                                           LocationService service) {
+        this.testName = description;
+
         Location payload = Location.builder()
-                .name(locationData.getName() + "Test")
-                .description(locationData.getDescription())
-                .url(locationData.getUrl())
+                .name("Unauthorized Update")
+                .description("Unauthorized Update")
+                .url(createdLocation.getUrl())
                 .build();
 
-        Response response = userService.updateLocation(locationData.getId(), payload)
+        Response response = service
+                .updateLocation(createdLocationId, payload)
                 .getResponse();
 
-        AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
-    }
-
-    @Test(
-            description = "Verify guest cannot update location",
-            groups = {"regression"}
-    )
-    @Severity(SeverityLevel.CRITICAL)
-    public void verifyGuestCannotUpdateLocation() throws AutomationException {
-        Location payload = Location.builder()
-                .name(locationData.getName() + "Test")
-                .description(locationData.getDescription())
-                .url(locationData.getUrl())
-                .build();
-
-        Response response = guestService.updateLocation(locationData.getId(), payload)
-                .getResponse();
-
-        AssertApiResponse.internalServerError(response, ErrorMessages.ACCESS_DENIED);
+        AssertApiResponse.assertThat(response)
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .failed()
+                .errorContains(ErrorMessages.ACCESS_DENIED);
     }
 
     @AfterMethod(alwaysRun = true)
-    public void revertChanges() throws AutomationException {
-        if (updatedLocationId != null) {
-            Location revertPayload = Location.builder()
-                    .name(locationData.getName())
-                    .description(locationData.getDescription())
-                    .url(locationData.getUrl())
-                    .build();
-
-            Response response = adminService.updateLocation(locationData.getId(), revertPayload)
+    public void cleanUp() {
+        if (createdLocationId != null) {
+            Response response = adminService
+                    .deleteLocation(createdLocationId)
                     .getResponse();
 
-            AssertApiResponse.success(response);
+            AssertApiResponse.assertThat(response)
+                    .status(HttpStatus.NO_CONTENT);
 
-            updatedLocationId = null;
+            createdLocationId = null;
         }
+    }
+
+    @Override
+    public String getTestName() {
+        return testName;
     }
 }
