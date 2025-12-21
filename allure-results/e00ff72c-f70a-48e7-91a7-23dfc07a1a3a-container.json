@@ -1,1 +1,0 @@
-{"uuid":"e00ff72c-f70a-48e7-91a7-23dfc07a1a3a","name":"tests.amenity.CreateAmenityTest","children":["9cee651f-19d0-464f-b94a-d2105e3260e4"],"befores":[{"name":"setUp","status":"passed","stage":"finished","description":"","steps":[],"attachments":[],"parameters":[],"start":1766321563390,"stop":1766321563406}],"afters":[],"start":1766321563369,"stop":1766321573861}
