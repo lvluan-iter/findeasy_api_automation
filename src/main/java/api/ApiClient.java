@@ -1,7 +1,6 @@
 package api;
 
 import constants.CommonConstants;
-import enums.UserRole;
 import exceptions.AutomationException;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -12,7 +11,7 @@ import io.restassured.http.Cookie;
 import io.restassured.http.Cookies;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import utils.EnvReader;
+import utils.ConfigReader;
 
 import java.util.Map;
 
@@ -35,7 +34,7 @@ public class ApiClient {
         EncoderConfig encoderConfig = new EncoderConfig();
         requestSpecBuilder = new RequestSpecBuilder();
 
-        requestSpecBuilder.setBaseUri(EnvReader.getBaseUrl());
+        requestSpecBuilder.setBaseUri(ConfigReader.get("url"));
         requestSpecBuilder.setContentType(ContentType.JSON);
 
         requestSpecBuilder.setConfig(
@@ -100,11 +99,8 @@ public class ApiClient {
         return this;
     }
 
-    public ApiClient auth(UserRole role) throws AutomationException {
-        if (role != null) {
-            String token = TokenManager.getToken(role);
-            requestSpecBuilder.addHeader("Authorization", "Bearer " + token);
-        }
+    public ApiClient auth(String token) {
+        requestSpecBuilder.addHeader("Authorization", "Bearer " + token);
         return this;
     }
 

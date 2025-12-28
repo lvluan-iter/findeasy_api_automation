@@ -70,8 +70,7 @@ public class LoginTest implements ITest {
                 .build();
 
         Response response = authService
-                .login(payload)
-                .getResponse();
+                .login(payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)
@@ -108,8 +107,7 @@ public class LoginTest implements ITest {
         this.testName = description;
 
         Response response = authService
-                .login(payload)
-                .getResponse();
+                .login(payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.BAD_REQUEST)
@@ -126,8 +124,7 @@ public class LoginTest implements ITest {
                 .build();
 
         Response response = authService
-                .login(payload)
-                .getResponse();
+                .login(payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.NOT_FOUND)

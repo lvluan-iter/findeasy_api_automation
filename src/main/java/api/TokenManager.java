@@ -1,43 +1,39 @@
 package api;
 
-import constants.PathConstants;
 import enums.HttpStatus;
-import enums.UserRole;
-import exceptions.AutomationException;
 import io.restassured.response.Response;
 import models.JwtAuthenticate;
 import models.LoginRequest;
-import models.User;
-import utils.JsonUtils;
 
-import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TokenManager {
 
-    private static final Map<UserRole, String> tokens = new EnumMap<>(UserRole.class);
-    private static final Map<UserRole, Long> tokenExpiry = new EnumMap<>(UserRole.class);
+    private static final Map<String, String> tokens = new ConcurrentHashMap<>();
+    private static final Map<String, Long> tokenExpiry = new ConcurrentHashMap<>();
 
-    public static synchronized String getToken(UserRole role) throws AutomationException {
-        if (role == UserRole.GUEST) return null;
-
-        if (!tokens.containsKey(role) || isExpired(role)) {
-            refreshToken(role);
+    public static String getToken(String username, String password) {
+        if (!tokens.containsKey(username) || isExpired(username)) {
+            refreshToken(username, password);
         }
 
-        return tokens.get(role);
+        return tokens.get(username);
     }
 
-    private static boolean isExpired(UserRole role) {
-        return System.currentTimeMillis() >= tokenExpiry.getOrDefault(role, 0L);
+    private static boolean isExpired(String username) {
+        return System.currentTimeMillis() >= tokenExpiry.getOrDefault(username, 0L);
     }
 
-    private static void refreshToken(UserRole role) throws AutomationException {
-        LoginRequest creds = buildLoginRequestByRole(role);
+    private static void refreshToken(String username, String password) {
+        LoginRequest loginRequest = LoginRequest.builder()
+                .username(username)
+                .password(password)
+                .build();
 
         Response response = ApiClient.init()
                 .path(Endpoints.LOGIN)
-                .body(creds)
+                .body(loginRequest)
                 .post()
                 .response();
         JwtAuthenticate jwt = AssertApiResponse.assertThat(response)
@@ -45,17 +41,9 @@ public class TokenManager {
                 .succeeded()
                 .resultAs(JwtAuthenticate.class);
 
-        tokens.put(role,
+        tokens.put(username,
                 jwt.getToken());
-        tokenExpiry.put(role,
+        tokenExpiry.put(username,
                 jwt.getExpire());
-    }
-
-    private static LoginRequest buildLoginRequestByRole(UserRole role) {
-        User userData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON,
-                role.getRoleName(),
-                User.class
-        );
-        return new LoginRequest(userData.getUsername(), userData.getPassword());
     }
 }

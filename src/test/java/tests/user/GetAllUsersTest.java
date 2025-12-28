@@ -1,6 +1,7 @@
 package tests.user;
 
 import api.AssertApiResponse;
+import constants.PathConstants;
 import enums.HttpStatus;
 import enums.UserRole;
 import io.qameta.allure.Epic;
@@ -8,11 +9,13 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
+import models.User;
 import org.testng.ITest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import services.UserService;
+import utils.JsonUtils;
 
 @Epic("User Management")
 @Feature("Get All Users")
@@ -25,10 +28,14 @@ public class GetAllUsersTest implements ITest {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        adminService = UserService.init(UserRole.ADMIN);
-        userService = UserService.init(UserRole.USER);
-        guestService = UserService.init(UserRole.GUEST);
+        User adminData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.ADMIN.getRoleName(), User.class);
+        User useData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.USER.getRoleName(), User.class);
 
+        adminService = UserService.init()
+                .auth(adminData.getUsername(), adminData.getPassword());
+        userService = UserService.init()
+                .auth(useData.getUsername(), useData.getPassword());
+        guestService = UserService.init();
     }
 
     @DataProvider(name = "getAllUsersServiceProvider")
@@ -49,8 +56,7 @@ public class GetAllUsersTest implements ITest {
         this.testName = description;
 
         Response response = service
-                .getAllUsers()
-                .getResponse();
+                .getAllUsers();
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)

@@ -2,64 +2,55 @@ package services;
 
 import api.ApiClient;
 import api.Endpoints;
-import enums.UserRole;
+import api.TokenManager;
 import exceptions.AutomationException;
 import io.restassured.response.Response;
 
 public class LocationService {
-    private final UserRole role;
-    private Response apiResponse;
+    private String token;
 
-    private LocationService(UserRole role) {
-        this.role = role;
+    public static LocationService init() {
+        return new LocationService();
     }
 
-    public static LocationService init(UserRole role) {
-        return new LocationService(role);
-    }
-
-    public LocationService getAllLocations() throws AutomationException {
-        apiResponse = ApiClient.init()
-                .path(Endpoints.LOCATION_ENDPOINT)
-                .auth(role)
-                .get()
-                .response();
-
+    public LocationService auth(String username, String password) {
+        token = TokenManager.getToken(username, password);
         return this;
     }
 
-    public LocationService createLocation(Object payload) throws AutomationException {
-        apiResponse = ApiClient.init()
+    public Response getAllLocations() throws AutomationException {
+        return ApiClient.init()
                 .path(Endpoints.LOCATION_ENDPOINT)
-                .auth(role)
+                .auth(token)
+                .get()
+                .response();
+    }
+
+    public Response createLocation(Object payload) throws AutomationException {
+        return ApiClient.init()
+                .path(Endpoints.LOCATION_ENDPOINT)
+                .auth(token)
                 .body(payload)
                 .post()
                 .response();
-        return this;
     }
 
-    public LocationService updateLocation(Long locationId, Object payload) throws AutomationException {
-        apiResponse = ApiClient.init()
+    public Response updateLocation(Long locationId, Object payload) throws AutomationException {
+        return ApiClient.init()
                 .path(Endpoints.LOCATION_ENDPOINT + "/{id}")
                 .pathParam("id", locationId.toString())
-                .auth(role)
+                .auth(token)
                 .body(payload)
                 .put()
                 .response();
-        return this;
     }
 
-    public LocationService deleteLocation(Long locationId) throws AutomationException {
-        apiResponse = ApiClient.init()
-                .auth(role)
+    public Response deleteLocation(Long locationId) throws AutomationException {
+        return ApiClient.init()
+                .auth(token)
                 .path(Endpoints.LOCATION_ENDPOINT + "/{id}")
                 .pathParam("id", locationId.toString())
                 .delete()
                 .response();
-        return this;
-    }
-
-    public Response getResponse() {
-        return apiResponse;
     }
 }

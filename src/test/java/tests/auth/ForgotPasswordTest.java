@@ -43,8 +43,7 @@ public class ForgotPasswordTest {
     public void verifyUserCanGetLinkToResetPasswordSuccessfully() throws AutomationException {
         ForgotPasswordRequest payload = new ForgotPasswordRequest(userData.getEmail());
 
-        Response response = authService.forgotPassword(payload)
-                .getResponse();
+        Response response = authService.forgotPassword(payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)
@@ -60,8 +59,7 @@ public class ForgotPasswordTest {
         String email = DataGenerateUtils.email();
         ForgotPasswordRequest payload = new ForgotPasswordRequest(email);
 
-        Response response = authService.forgotPassword(payload)
-                .getResponse();
+        Response response = authService.forgotPassword(payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.NOT_FOUND)

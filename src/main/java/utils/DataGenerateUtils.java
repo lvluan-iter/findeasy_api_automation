@@ -11,8 +11,8 @@ public class DataGenerateUtils {
     private static final ThreadLocal<Faker> FAKER =
             ThreadLocal.withInitial(() ->
                     new Faker(Locale.forLanguageTag(
-                            ConfigReader.init()
-                                    .getPropertyOrDefault("locale", "vi")
+                            ConfigReader
+                                    .getOrDefault("locale", "vi")
                     ))
             );
 
