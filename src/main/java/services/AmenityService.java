@@ -2,64 +2,55 @@ package services;
 
 import api.ApiClient;
 import api.Endpoints;
-import enums.UserRole;
+import api.TokenManager;
+import exceptions.AutomationException;
 import io.restassured.response.Response;
-import lombok.Getter;
-import models.Amenity;
 
 public class AmenityService {
-    private final UserRole role;
-    @Getter
-    private Response response;
+    private String token;
 
-    public AmenityService(UserRole role) {
-        this.role = role;
+    public static AmenityService init() {
+        return new AmenityService();
     }
 
-    public static AmenityService init(UserRole role) {
-        return new AmenityService(role);
-    }
-
-    public AmenityService getAllAmenities() {
-        response = ApiClient.init()
-                .path(Endpoints.AMENITY_ENDPOINT)
-                .auth(role)
-                .get()
-                .response();
+    public AmenityService auth(String username, String password) {
+        this.token = TokenManager.getToken(username, password);
         return this;
     }
 
-    public AmenityService createAmenity(Amenity payload) {
-        response = ApiClient.init()
+    public Response getAllAmenities() throws AutomationException {
+        return ApiClient.init()
                 .path(Endpoints.AMENITY_ENDPOINT)
-                .auth(role)
+                .auth(token)
+                .get()
+                .response();
+    }
+
+    public Response createAmenity(Object payload) throws AutomationException {
+        return ApiClient.init()
+                .path(Endpoints.AMENITY_ENDPOINT)
+                .auth(token)
                 .body(payload)
                 .post()
                 .response();
-        return this;
     }
 
-    public AmenityService updateAmenity(Amenity payload) {
-        response = ApiClient.init()
+    public Response updateAmenity(Long amenityId, Object payload) throws AutomationException {
+        return ApiClient.init()
                 .path(Endpoints.AMENITY_ENDPOINT + "/{id}")
-                .pathParam("id",
-                        payload.getId()
-                                .toString())
-                .auth(role)
+                .pathParam("id", amenityId.toString())
+                .auth(token)
                 .body(payload)
                 .put()
                 .response();
-        return this;
     }
 
-    public AmenityService deleteAmenity(Long id) {
-        response = ApiClient.init()
+    public Response deleteAmenity(Long amenityId) throws AutomationException {
+        return ApiClient.init()
                 .path(Endpoints.AMENITY_ENDPOINT + "/{id}")
-                .pathParam("id", id.toString())
-                .auth(role)
+                .pathParam("id", amenityId.toString())
+                .auth(token)
                 .delete()
                 .response();
-        return this;
     }
-
 }

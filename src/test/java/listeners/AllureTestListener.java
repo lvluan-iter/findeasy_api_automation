@@ -3,7 +3,7 @@ package listeners;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-import utils.EnvReader;
+import utils.ConfigReader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,7 +47,7 @@ public class AllureTestListener implements ITestListener {
         try {
             Properties props = new Properties();
             props.setProperty("Env", System.getProperty("env", "Qa"));
-            props.setProperty("BaseUrl", EnvReader.getBaseUrl());
+            props.setProperty("BaseUrl", ConfigReader.get("url"));
             props.setProperty("OS", System.getProperty("os.name"));
             props.setProperty("Java Version", System.getProperty("java.version"));
             props.setProperty("Tester", System.getProperty("user.name"));

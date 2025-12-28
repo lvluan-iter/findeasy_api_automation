@@ -2,6 +2,7 @@ package tests.location;
 
 import api.AssertApiResponse;
 import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.HttpStatus;
 import enums.UserRole;
 import io.qameta.allure.Epic;
@@ -10,10 +11,12 @@ import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.Location;
+import models.User;
 import org.testng.ITest;
 import org.testng.annotations.*;
 import services.LocationService;
 import utils.DataGenerateUtils;
+import utils.JsonUtils;
 
 @Epic("Location Management")
 @Feature("Delete Location")
@@ -28,9 +31,14 @@ public class DeleteLocationTest implements ITest {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        adminService = LocationService.init(UserRole.ADMIN);
-        userService = LocationService.init(UserRole.USER);
-        guestService = LocationService.init(UserRole.GUEST);
+        User adminData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.ADMIN.getRoleName(), User.class);
+        User useData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.USER.getRoleName(), User.class);
+
+        adminService = LocationService.init()
+                .auth(adminData.getUsername(), adminData.getPassword());
+        userService = LocationService.init()
+                .auth(useData.getUsername(), useData.getPassword());
+        guestService = LocationService.init();
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -42,8 +50,7 @@ public class DeleteLocationTest implements ITest {
                 .build();
 
         Response response = adminService
-                .createLocation(payload)
-                .getResponse();
+                .createLocation(payload);
 
         createdLocationId = AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)
@@ -59,8 +66,7 @@ public class DeleteLocationTest implements ITest {
     @Severity(SeverityLevel.BLOCKER)
     public void verifyAdminCanDeleteLocationSuccessfully() {
         Response response = adminService
-                .deleteLocation(createdLocationId)
-                .getResponse();
+                .deleteLocation(createdLocationId);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.NO_CONTENT);
@@ -86,8 +92,7 @@ public class DeleteLocationTest implements ITest {
         this.testName = description;
 
         Response response = service
-                .deleteLocation(createdLocationId)
-                .getResponse();
+                .deleteLocation(createdLocationId);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -102,15 +107,13 @@ public class DeleteLocationTest implements ITest {
     @Severity(SeverityLevel.CRITICAL)
     public void verifyDeleteLocationTwice() {
         Response firstDelete = adminService
-                .deleteLocation(createdLocationId)
-                .getResponse();
+                .deleteLocation(createdLocationId);
 
         AssertApiResponse.assertThat(firstDelete)
                 .status(HttpStatus.NO_CONTENT);
 
         Response secondDelete = adminService
-                .deleteLocation(createdLocationId)
-                .getResponse();
+                .deleteLocation(createdLocationId);
 
         AssertApiResponse.assertThat(secondDelete)
                 .status(HttpStatus.NOT_FOUND)
@@ -124,8 +127,7 @@ public class DeleteLocationTest implements ITest {
     public void cleanUp() {
         if (createdLocationId != null) {
             Response response = adminService
-                    .deleteLocation(createdLocationId)
-                    .getResponse();
+                    .deleteLocation(createdLocationId);
 
             AssertApiResponse.assertThat(response)
                     .status(HttpStatus.NO_CONTENT);

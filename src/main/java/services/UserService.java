@@ -2,63 +2,55 @@ package services;
 
 import api.ApiClient;
 import api.Endpoints;
-import enums.UserRole;
+import api.TokenManager;
 import exceptions.AutomationException;
 import io.restassured.response.Response;
 
 public class UserService {
-    private final UserRole role;
-    private Response apiResponse;
+    private String token;
 
-    private UserService(UserRole role) {
-        this.role = role;
+    public static UserService init() {
+        return new UserService();
     }
 
-    public static UserService init(UserRole role) {
-        return new UserService(role);
-    }
-
-    public UserService getAllUsers() throws AutomationException {
-        apiResponse = ApiClient.init()
-                .auth(role)
-                .path(Endpoints.USER_ENDPOINT)
-                .get()
-                .response();
+    public UserService auth(String username, String password) {
+        this.token = TokenManager.getToken(username, password);
         return this;
     }
 
-    public UserService getUserByUsername(String username) throws AutomationException {
-        apiResponse = ApiClient.init()
-                .auth(role)
+    public Response getAllUsers() throws AutomationException {
+        return ApiClient.init()
+                .auth(token)
+                .path(Endpoints.USER_ENDPOINT)
+                .get()
+                .response();
+    }
+
+    public Response getUserByUsername(String username) throws AutomationException {
+        return ApiClient.init()
+                .auth(token)
                 .path(Endpoints.GET_USER_BY_USERNAME)
                 .pathParam("name", username)
                 .get()
                 .response();
-        return this;
     }
 
-    public UserService deleteUser(Long userId) throws AutomationException {
-        apiResponse = ApiClient.init()
-                .auth(role)
+    public Response deleteUser(Long userId) throws AutomationException {
+        return ApiClient.init()
+                .auth(token)
                 .path(Endpoints.DELETE_USER)
                 .pathParam("id", userId.toString())
                 .delete()
                 .response();
-        return this;
     }
 
-    public UserService changePassword(Long userId, Object payload) throws AutomationException {
-        apiResponse = ApiClient.init()
-                .auth(role)
+    public Response changePassword(Long userId, Object payload) throws AutomationException {
+        return ApiClient.init()
+                .auth(token)
                 .path(Endpoints.CHANGE_PASSWORD)
                 .pathParam("id", userId.toString())
                 .body(payload)
                 .put()
                 .response();
-        return this;
-    }
-
-    public Response getResponse() {
-        return apiResponse;
     }
 }

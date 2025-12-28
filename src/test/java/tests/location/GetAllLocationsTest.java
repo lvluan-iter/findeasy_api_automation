@@ -1,6 +1,7 @@
 package tests.location;
 
 import api.AssertApiResponse;
+import constants.PathConstants;
 import enums.HttpStatus;
 import enums.UserRole;
 import io.qameta.allure.Epic;
@@ -8,11 +9,13 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
+import models.User;
 import org.testng.ITest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import services.LocationService;
+import utils.JsonUtils;
 
 @Epic("Location Management")
 @Feature("Get All Locations")
@@ -25,9 +28,14 @@ public class GetAllLocationsTest implements ITest {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        adminService = LocationService.init(UserRole.ADMIN);
-        userService = LocationService.init(UserRole.USER);
-        guestService = LocationService.init(UserRole.GUEST);
+        User adminData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.ADMIN.getRoleName(), User.class);
+        User useData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.USER.getRoleName(), User.class);
+
+        adminService = LocationService.init()
+                .auth(adminData.getUsername(), adminData.getPassword());
+        userService = LocationService.init()
+                .auth(useData.getUsername(), useData.getPassword());
+        guestService = LocationService.init();
     }
 
     @DataProvider(name = "getAllLocationsServiceProvider")
@@ -49,8 +57,7 @@ public class GetAllLocationsTest implements ITest {
         this.testName = description;
 
         Response response = service
-                .getAllLocations()
-                .getResponse();
+                .getAllLocations();
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)

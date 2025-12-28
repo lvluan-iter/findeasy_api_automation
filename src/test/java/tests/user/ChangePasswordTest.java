@@ -2,6 +2,7 @@ package tests.user;
 
 import api.AssertApiResponse;
 import constants.ErrorMessages;
+import constants.PathConstants;
 import enums.HttpStatus;
 import enums.UserRole;
 import io.qameta.allure.Epic;
@@ -12,7 +13,6 @@ import io.restassured.response.Response;
 import models.ChangePasswordRequest;
 import models.RegisterRequest;
 import models.User;
-import org.testng.ITest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -20,11 +20,12 @@ import org.testng.annotations.Test;
 import services.AuthService;
 import services.UserService;
 import utils.DataGenerateUtils;
+import utils.JsonUtils;
 import utils.Randomizer;
 
 @Epic("User Management")
 @Feature("Change Password")
-public class ChangePasswordTest implements ITest {
+public class ChangePasswordTest {
 
     private AuthService authService;
     private UserService userService;
@@ -32,13 +33,14 @@ public class ChangePasswordTest implements ITest {
 
     private RegisterRequest registerData;
     private Long createdUserId;
-    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
+        User adminData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.ADMIN.getRoleName(), User.class);
+
         authService = AuthService.init();
-        userService = UserService.init(UserRole.USER);
-        adminUserService = UserService.init(UserRole.ADMIN);
+        adminUserService = UserService.init()
+                .auth(adminData.getUsername(), adminData.getPassword());
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -54,14 +56,16 @@ public class ChangePasswordTest implements ITest {
                 .build();
 
         Response registerResponse = authService
-                .register(registerData)
-                .getResponse();
+                .register(registerData);
 
         createdUserId = AssertApiResponse.assertThat(registerResponse)
                 .status(HttpStatus.CREATED)
                 .succeeded()
                 .resultAs(User.class)
                 .getId();
+
+        userService = UserService.init()
+                .auth(registerData.getUsername(), registerData.getPassword());
     }
 
     @Test(
@@ -76,8 +80,7 @@ public class ChangePasswordTest implements ITest {
                 .build();
 
         Response response = userService
-                .changePassword(createdUserId, payload)
-                .getResponse();
+                .changePassword(createdUserId, payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)
@@ -96,8 +99,7 @@ public class ChangePasswordTest implements ITest {
                 .build();
 
         Response response = userService
-                .changePassword(createdUserId, payload)
-                .getResponse();
+                .changePassword(createdUserId, payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -117,8 +119,7 @@ public class ChangePasswordTest implements ITest {
                 .build();
 
         Response response = userService
-                .changePassword(createdUserId, payload)
-                .getResponse();
+                .changePassword(createdUserId, payload);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -130,8 +131,7 @@ public class ChangePasswordTest implements ITest {
     public void cleanUp() {
         if (createdUserId != null) {
             Response response = adminUserService
-                    .deleteUser(createdUserId)
-                    .getResponse();
+                    .deleteUser(createdUserId);
 
             AssertApiResponse.assertThat(response)
                     .status(HttpStatus.OK)
@@ -139,10 +139,5 @@ public class ChangePasswordTest implements ITest {
 
             createdUserId = null;
         }
-    }
-
-    @Override
-    public String getTestName() {
-        return testName;
     }
 }

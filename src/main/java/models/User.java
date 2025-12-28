@@ -18,6 +18,4 @@ public class User {
     private String phoneNumber;
     private String gender;
     private String birthdate;
-    private String currentPassword;
-    private String newPassword;
 }

@@ -12,7 +12,6 @@ import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
 import models.RegisterRequest;
 import models.User;
-import org.testng.ITest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -25,7 +24,7 @@ import utils.Randomizer;
 
 @Epic("Authentication")
 @Feature("Register")
-public class RegisterTest implements ITest {
+public class RegisterTest {
 
     private AuthService authService;
     private UserService adminUserService;
@@ -33,7 +32,6 @@ public class RegisterTest implements ITest {
     private User existingUserData;
     private RegisterRequest registerData;
     private Long createdUserId;
-    private String testName;
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
@@ -43,8 +41,11 @@ public class RegisterTest implements ITest {
                 User.class
         );
 
+        User adminData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.ADMIN.getRoleName(), User.class);
+
         authService = AuthService.init();
-        adminUserService = UserService.init(UserRole.ADMIN);
+        adminUserService = UserService.init()
+                .auth(adminData.getUsername(), adminData.getPassword());
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -67,8 +68,7 @@ public class RegisterTest implements ITest {
     @Severity(SeverityLevel.BLOCKER)
     public void verifyUserCanRegisterSuccessfullyWithAllFields() {
         Response response = authService
-                .register(registerData)
-                .getResponse();
+                .register(registerData);
 
         createdUserId = AssertApiResponse.assertThat(response)
                 .status(HttpStatus.CREATED)
@@ -87,8 +87,7 @@ public class RegisterTest implements ITest {
         registerData.setBirthdate(null);
 
         Response response = authService
-                .register(registerData)
-                .getResponse();
+                .register(registerData);
 
         createdUserId = AssertApiResponse.assertThat(response)
                 .status(HttpStatus.CREATED)
@@ -106,8 +105,7 @@ public class RegisterTest implements ITest {
         registerData.setUsername(existingUserData.getUsername());
 
         Response response = authService
-                .register(registerData)
-                .getResponse();
+                .register(registerData);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.CONFLICT)
@@ -123,8 +121,7 @@ public class RegisterTest implements ITest {
         registerData.setEmail(existingUserData.getEmail());
 
         Response response = authService
-                .register(registerData)
-                .getResponse();
+                .register(registerData);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.CONFLICT)
@@ -140,8 +137,7 @@ public class RegisterTest implements ITest {
         registerData.setPassword(Randomizer.randomAlphabets(8));
 
         Response response = authService
-                .register(registerData)
-                .getResponse();
+                .register(registerData);
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -153,8 +149,7 @@ public class RegisterTest implements ITest {
     public void cleanUp() {
         if (createdUserId != null) {
             Response response = adminUserService
-                    .deleteUser(createdUserId)
-                    .getResponse();
+                    .deleteUser(createdUserId);
 
             AssertApiResponse.assertThat(response)
                     .status(HttpStatus.OK)
@@ -162,10 +157,5 @@ public class RegisterTest implements ITest {
 
             createdUserId = null;
         }
-    }
-
-    @Override
-    public String getTestName() {
-        return testName;
     }
 }

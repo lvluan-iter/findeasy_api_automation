@@ -1,6 +1,7 @@
 package tests.amenity;
 
 import api.AssertApiResponse;
+import constants.PathConstants;
 import enums.HttpStatus;
 import enums.UserRole;
 import io.qameta.allure.Epic;
@@ -8,11 +9,13 @@ import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.restassured.response.Response;
+import models.User;
 import org.testng.ITest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import services.AmenityService;
+import utils.JsonUtils;
 
 @Epic("Amenity Management")
 @Feature("Get All Amenities")
@@ -25,9 +28,14 @@ public class GetAllAmenitiesTest implements ITest {
 
     @BeforeClass(alwaysRun = true)
     public void setUp() {
-        adminService = AmenityService.init(UserRole.ADMIN);
-        userService = AmenityService.init(UserRole.USER);
-        guestService = AmenityService.init(UserRole.GUEST);
+        User adminData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.ADMIN.getRoleName(), User.class);
+        User useData = JsonUtils.fromFileByKey(PathConstants.ACCOUNT_JSON, UserRole.USER.getRoleName(), User.class);
+
+        adminService = AmenityService.init()
+                .auth(adminData.getUsername(), adminData.getPassword());
+        userService = AmenityService.init()
+                .auth(useData.getUsername(), useData.getPassword());
+        guestService = AmenityService.init();
     }
 
     @DataProvider(name = "getAllAmenitiesServiceProvider")
@@ -49,8 +57,7 @@ public class GetAllAmenitiesTest implements ITest {
         this.testName = description;
 
         Response response = service
-                .getAllAmenities()
-                .getResponse();
+                .getAllAmenities();
 
         AssertApiResponse.assertThat(response)
                 .status(HttpStatus.OK)

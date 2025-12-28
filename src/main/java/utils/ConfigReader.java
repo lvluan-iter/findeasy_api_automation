@@ -1,60 +1,49 @@
 package utils;
 
-import constants.PathConstants;
 import exceptions.AutomationException;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.text.MessageFormat;
+import java.io.InputStream;
 import java.util.Properties;
 
 public final class ConfigReader {
+    private static final Properties props = new Properties();
+    private static final String ENV = System.getProperty("env", "qa");
 
-    private static final ConfigReader INSTANCE = new ConfigReader();
-    private static Properties properties;
+    static {
+        try (InputStream is = ConfigReader.class
+                .getClassLoader()
+                .getResourceAsStream("config.properties")) {
 
-    public static ConfigReader init() {
-        ConfigReader testProp = INSTANCE;
-        testProp.getInstance();
-        return testProp;
-    }
-
-    private void getInstance() {
-        if (properties == null) {
-            properties = new Properties();
-            try {
-                FileInputStream inputStream = new FileInputStream(PathConstants.CONFIG_PROPERTIES_PATH);
-                properties.load(inputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (is == null) {
+                throw new RuntimeException("config.properties not found");
             }
+            props.load(is);
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot load config file", e);
         }
     }
 
-    public String getProperty(String propertyName) throws AutomationException {
+    private static String key(String name) {
+        return ENV + "." + name;
+    }
 
-        Object value = properties.get(propertyName);
-        if (value != null) {
-            return properties.get(propertyName)
-                    .toString();
-        } else {
-            String errorLog = MessageFormat.format(
-                    "Error occurred while getting {0} Property from config.properties. This could be due to no such property available in this file.",
-                    propertyName);
-            throw new AutomationException(errorLog);
+    public static String get(String name) {
+        String value = props.getProperty(key(name));
+        if (value == null) {
+            throw new AutomationException("Missing config: " + key(name));
         }
+        return value;
     }
 
-    public String getPropertyOrDefault(String propertyName, String defaultValue) {
-        return properties.getProperty(propertyName, defaultValue);
+    public static String getOrDefault(String name, String defaultValue) {
+        return props.getProperty(key(name), defaultValue);
     }
 
-    public boolean getBooleanProperty(String propertyName) {
-        return Boolean.parseBoolean(properties.getProperty(propertyName));
+    public static boolean getBoolean(String name) {
+        return Boolean.parseBoolean(get(name));
     }
 
-    public Integer getIntegerProperty(String propertyName) {
-        return Integer.parseInt(properties.getProperty(propertyName));
+    public static int getInt(String name) {
+        return Integer.parseInt(get(name));
     }
-
 }
